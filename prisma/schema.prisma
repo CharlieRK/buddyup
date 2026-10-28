@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- BuddyUp data model (see docs/PRD.md section 8) ----------
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum Category {
+  SPORTS
+  STUDY
+  FOOD
+  ARTS_CULTURE
+  OUTDOORS
+  GAMING
+  OTHER
+}
+
+enum ActivityStatus {
+  OPEN
+  FULL
+  CANCELLED
+  COMPLETED
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  WITHDRAWN
+}
+
+enum ReportTarget {
+  ACTIVITY
+  USER
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  UNSAFE
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  DISMISSED
+  ACTIONED
+}
+
+model User {
+  id               String        @id @default(cuid())
+  email            String        @unique
+  passwordHash     String
+  name             String
+  major            String?
+  gradYear         Int?
+  interests        String[]
+  role             Role          @default(USER)
+  status           UserStatus    @default(ACTIVE)
+  createdAt        DateTime      @default(now())
+  hostedActivities Activity[]    @relation("HostedActivities")
+  joinRequests     JoinRequest[]
+  messages         Message[]
+  reportsFiled     Report[]      @relation("ReportsFiled")
+  reportsResolved  Report[]      @relation("ReportsResolved")
+}
+
+model Activity {
+  id           String         @id @default(cuid())
+  host         User           @relation("HostedActivities", fields: [hostId], references: [id])
+  hostId       String
+  title        String
+  description  String         @default("")
+  category     Category
+  startTime    DateTime
+  location     String
+  capacity     Int
+  status       ActivityStatus @default(OPEN)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  joinRequests JoinRequest[]
+  messages     Message[]
+
+  @@index([status, startTime])
+}
+
+model JoinRequest {
+  id         String        @id @default(cuid())
+  activity   Activity      @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  activityId String
+  user       User          @relation(fields: [userId], references: [id])
+  userId     String
+  message    String?
+  status     RequestStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+
+  @@unique([activityId, userId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  activityId String
+  sender     User     @relation(fields: [senderId], references: [id])
+  senderId   String
+  body       String
+  createdAt  DateTime @default(now())
+
+  @@index([activityId, createdAt])
+}
+
+model Report {
+  id           String       @id @default(cuid())
+  reporter     User         @relation("ReportsFiled", fields: [reporterId], references: [id])
+  reporterId   String
+  targetType   ReportTarget
+  targetId     String
+  reason       ReportReason
+  details      String?
+  status       ReportStatus @default(OPEN)
+  resolvedBy   User?        @relation("ReportsResolved", fields: [resolvedById], references: [id])
+  resolvedById String?
+  createdAt    DateTime     @default(now())
+
+  @@unique([reporterId, targetType, targetId])
+}
