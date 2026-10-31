@@ -1,26 +1,86 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f2f5fa;
+  --surface: #ffffff;
+  --surface-2: #ebf0f8;
+  --ink: #14213d;
+  --muted: #56627d;
+  --line: #d3dae8;
+  --primary: #2f5bea;
+  --primary-soft: #e4ebff;
+  --sun: #ffc93c;
+  --sun-ink: #3a2a00;
+  --ok: #147a52;
+  --ok-soft: #ddf3ea;
+  --danger: #b8283f;
+  --danger-soft: #fbe3e7;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-sun: var(--sun);
+  --color-sun-ink: var(--sun-ink);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: var(--font-sans);
+  --font-heading: var(--font-heading);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #0c1220;
+    --surface: #151e33;
+    --surface-2: #1c2742;
+    --ink: #e9eef8;
+    --muted: #a1acc6;
+    --line: #2c3858;
+    --primary: #7d98ff;
+    --primary-soft: #22305a;
+    --sun: #ffd25e;
+    --sun-ink: #2a1f00;
+    --ok: #4bcb94;
+    --ok-soft: #173b2e;
+    --danger: #ff7a8f;
+    --danger-soft: #43202a;
   }
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: none;
 }
