@@ -31,8 +31,11 @@ For every task:
 3. **Before writing code, state your plan**: which acceptance criteria you'll cover, which files
    you'll create or change, and which tests you'll write.
 4. **Work test-first** (Section 4): write failing tests, then implement, then refactor.
-5. **Verify before saying you're done**: `npm test`, `npx tsc --noEmit`, and `npm run lint` must all pass.
-6. **Report**: list each acceptance criterion and the test that covers it. Call out anything you
+5. **Stay in scope.** Only change files the issue needs. Don't redesign other pages (e.g. the
+   landing page) or refactor unrelated code; suggest it in your report instead.
+6. **Verify before saying you're done**, in **one** command so the human approves it once:
+   `npm test && npx tsc --noEmit && npm run lint` (add `npm run test:e2e` for P0 stories).
+7. **Report**: list each acceptance criterion and the test that covers it. Call out anything you
    could not finish or had to stub.
 
 If something in a request conflicts with this file, point out the conflict and ask.
@@ -70,6 +73,8 @@ If something in a request conflicts with this file, point out the conflict and a
     (cookies, headers, DB reads per request) must follow the Cache Components rules in the local docs.
   - `params` and `searchParams` are **Promises**: `const { id } = await params`.
   - Use Next's generated route type helpers (`PageProps<"/activities/[id]">`, `LayoutProps<"/">`).
+    If a new route's helper doesn't type-check, run `npx next typegen` to regenerate route types;
+    don't replace the helper with a hand-written type.
 - **Tailwind 4 is CSS-first.** There is no `tailwind.config.js`. Design tokens live in
   `src/app/globals.css` under `@theme` (Section 5.2).
 - **Prisma 7**: config is in `prisma7.config.ts`; the schema is `prisma/schema.prisma`.
@@ -141,6 +146,11 @@ Page / Component  ──fetch──▶  /api/v1 route handler  ──▶  servic
   effects, or event handlers, and keep those components small.
 - Until auth (issue #5) lands: if `getCurrentUser()` doesn't exist yet, create it in
   `lib/auth/session.ts` as a typed stub and mark it `// TODO(#5): replace with JWT session`.
+  **The stub must still behave like real auth:** return `null` when there is no `session` cookie,
+  and `requireUser()` must throw an `HttpError(401)` that route handlers turn into a `401`
+  response. Never hard-code an always-signed-in user.
+- **Check auth first** in route handlers (before parsing the body), and every route test file
+  includes a "returns 401 when not signed in" case.
   Until the database (issue #1) lands: code against `lib/db.ts` anyway and mock it in tests.
 
 ### 2.3 API conventions
@@ -192,7 +202,9 @@ Code style:
 ### 4.1 The loop (required for every feature and bug fix)
 
 1. **Red**: write tests that encode the issue's acceptance criteria. Run them and confirm they fail.
-   Commit: `test(<scope>): add failing tests for <feature> (#<issue>)`.
+   **Then actually run `git add` + `git commit`** with
+   `test(<scope>): add failing tests for <feature> (#<issue>)` before writing implementation code.
+   Running tests red without committing doesn't count: graders check the git history.
 2. **Green**: write the minimum code to pass. Commit: `feat(<scope>): <summary> (#<issue>)`.
 3. **Refactor** with tests still green. Commit: `refactor(<scope>): ...` if needed.
 
@@ -258,6 +270,7 @@ classes (`bg-surface`, `text-muted`, `border-line`, ...). **Never hard-code hex 
 | `muted` | `#56627D` | `#A1ACC6` | Secondary text |
 | `line` | `#D3DAE8` | `#2C3858` | Borders, empty seats |
 | `primary` / `primary-soft` | `#2F5BEA` / `#E4EBFF` | `#7D98FF` / `#22305A` | Main actions, filled seats, tags |
+| `primary-ink` | `#FFFFFF` | `#0C1220` | Text on `primary` buttons (use `text-primary-ink`, never `text-white`) |
 | `sun` / `sun-ink` | `#FFC93C` / `#3A2A00` | `#FFD25E` / `#2A1F00` | "1 spot left", the viewer's own seat |
 | `ok` / `ok-soft` | `#147A52` / `#DDF3EA` | `#4BCB94` / `#173B2E` | Live indicator, Joined/Hosting flags |
 | `danger` / `danger-soft` | `#B8283F` / `#FBE3E7` | `#FF7A8F` / `#43202A` | Errors, destructive actions |
@@ -363,6 +376,8 @@ classes (`bg-surface`, `text-muted`, `border-line`, ...). **Never hard-code hex 
 - Don't write raw SQL or bypass `lib/db.ts`.
 - Don't edit applied migrations or generated files; create a new migration instead.
 - Don't store tokens in `localStorage` or log passwords, tokens, or full request bodies.
+- **Don't open or print `.env`.** It holds secrets. Read `.env.example` to learn which variables exist.
+- Don't use Tailwind's default palette (`zinc-*`, `gray-*`, `text-white`, ...) for UI colors; use tokens.
 
 ### Security requirements
 - Passwords hashed with `bcryptjs` (cost ≥ 10); never returned by any API.
@@ -398,6 +413,15 @@ classes (`bg-surface`, `text-muted`, `border-line`, ...). **Never hard-code hex 
 
 <!-- Why: HW3 asks for evidence of iteration. Each version records what changed and why. -->
 
+- **v2 — 2026-10-30**: Changes from the before/after test (`docs/hw3/comparison.md`):
+  - TDD step now requires an actual `git commit` of the failing tests. In v1 the agent ran tests
+    red but never committed, so the history didn't prove TDD.
+  - Auth stub must reject anonymous requests (401) and routes must test it. In v1 the agent's stub
+    always returned a demo user, which lost the 401 behavior the no-rules run had.
+  - Added "Stay in scope". Both runs rewrote the landing page, which US-04 doesn't ask for.
+  - Verification in one chained command, to cut approval prompts (v1 run: 19 approvals).
+  - `npx next typegen` instead of hand-written route types; `primary-ink` token instead of
+    `text-white`; never open `.env`. Each fixes something observed in a test run.
 - **v1 — 2026-10-29**: Initial rules from the PRD, mockups, and project setup. Includes lessons
   from setup: Next.js 16 and Prisma 7 write their own agent files unless disabled
   (`agentRules: false`, `prisma init --no-skills`), and Prisma's `latest` tag is an 8.0 RC.
