@@ -1,0 +1,73 @@
+=== npm test ===
+
+> buddyup@0.1.0 test
+> vitest run --passWithNoTests
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.5 [39m[90m/Users/charlierk/Projects/CS6983/buddyup[39m
+
+ [32m✓[39m src/app/api/v1/activities/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 92[2mms[22m[39m
+ [32m✓[39m src/components/create-activity-form.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 463[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 20:40:41
+[2m   Duration [22m 1.24s[2m (tests 38%, environment 37%, setup 12%, import 9%, transform 4%)[22m
+
+=== tsc ===
+=== lint ===
+
+> buddyup@0.1.0 lint
+> eslint
+
+=== deps ===
+buddyup@0.1.0 /Users/charlierk/Projects/CS6983/buddyup
+├─┬ @prisma/adapter-pg@7.10.1
+│ └── pg@8.23.1 deduped
+├─┬ @prisma/client@7.10.1
+│ └── prisma@7.10.1 deduped
+├─┬ pg@8.23.1
+│ └─┬ pg-pool@3.14.0
+│   └── pg@8.23.1 deduped
+└── prisma@7.10.1
+
+diff --git a/package.json b/package.json
+index 2e9511a..6a57653 100644
+--- a/package.json
++++ b/package.json
+@@ -5,6 +5,7 @@
+   "scripts": {
+     "dev": "next dev",
+     "build": "next build",
++    "postinstall": "prisma generate",
+     "start": "next start",
+     "lint": "eslint",
+     "test": "vitest run --passWithNoTests",
+@@ -14,10 +15,12 @@
+     "db:migrate": "prisma migrate dev"
+   },
+   "dependencies": {
++    "@prisma/adapter-pg": "^7.10.1",
+     "@prisma/client": "7.10.1",
+     "bcryptjs": "^3.0.3",
+     "jose": "^6.2.13",
+     "next": "16.4.3",
++    "pg": "^8.23.1",
+     "react": "19.3.0",
+     "react-dom": "19.3.0",
+     "zod": "^4.6.7"
+=== files ===
+ package-lock.json                            | 193 ++++++++++++++++-
+ package.json                                 |   3 +
+ src/app/activities/[id]/page.tsx             | 124 +++++++++++
+ src/app/activities/new/page.tsx              |  59 ++++++
+ src/app/api/v1/activities/route.test.ts      | 162 ++++++++++++++
+ src/app/api/v1/activities/route.ts           | 108 ++++++++++
+ src/app/layout.tsx                           |   4 +-
+ src/app/page.tsx                             | 104 ++++-----
+ src/components/create-activity-form.test.tsx |  88 ++++++++
+ src/components/create-activity-form.tsx      | 304 +++++++++++++++++++++++++++
+ src/lib/activities.ts                        | 100 +++++++++
+ src/lib/auth.ts                              | 103 +++++++++
+ src/lib/prisma.ts                            |  22 ++
+ 13 files changed, 1307 insertions(+), 67 deletions(-)
