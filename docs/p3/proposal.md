@@ -5,10 +5,11 @@ Nov 16, 2026 · Haoran Lyu · Status: **agreed with partner (@Sijia711) on Nov 1
 > **Update, Nov 17:** the P3 deadline moved from Dec 16 to **Dec 8**. The timeline below is
 > compressed to match.
 >
-> **Update, Nov 17 (scope):** BuddyUp ships on **PC web, mobile web, and a mobile app**. PC and
-> mobile web are one responsive Next.js app. The mobile app is an Expo (React Native) app for
-> the core participant flow (log in, Explore, detail, request to join) using the same `/api/v1`
-> API; hosting and admin stay web-only. Tasks are assigned by Haoran, not by the work-split
+> **Update, Nov 17 (scope):** the MVP is **PC web + mobile web** (one responsive Next.js app).
+> A **mobile app** is a stretch goal that Haoran builds alone, started only after the web MVP
+> works: an Expo (React Native) app for the core participant flow (log in, Explore, detail,
+> request to join) using the same `/api/v1` API; hosting and admin stay web-only. Web work is
+> split between both partners. Tasks are assigned by Haoran, not by the work-split
 > table below, which is now only a suggestion.
 
 ## TL;DR

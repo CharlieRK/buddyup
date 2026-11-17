@@ -11,7 +11,7 @@ locally, push feature branches to GitHub, and merge through pull requests.
 | fnm + Node.js 24 | Runtime (version pinned in `.nvmrc`) | `winget install Schniz.fnm` | `brew install fnm` |
 | VS Code | Editor | `winget install Microsoft.VisualStudioCode` | `brew install --cask visual-studio-code` |
 | Claude Code | AI coding (P3 graded) | PowerShell: `irm https://claude.ai/install.ps1 \| iex` | `curl -fsSL https://claude.ai/install.sh \| bash` |
-| Expo Go (phone) | Run the mobile app on a real phone | App Store / Google Play | App Store / Google Play |
+| Expo Go (phone, only for the stretch-goal app) | Run the mobile app on a real phone | App Store / Google Play | App Store / Google Play |
 | Simulator (optional) | Run the mobile app without a phone | Android Studio emulator | Xcode iOS Simulator (Mac only) and/or Android Studio |
 
 After installing fnm, set up your shell once (see `fnm --help` → `env`), then in the repo run:
@@ -56,7 +56,7 @@ npm run test:e2e     # desktop and mobile web (Pixel 7 viewport)
 To try **mobile web** on a real phone: run `npm run dev -- -H 0.0.0.0`, then open
 `http://<your computer's LAN IP>:3000` on a phone on the same Wi-Fi.
 
-## 5. Mobile app (after the Expo scaffold issue lands)
+## 5. Mobile app (stretch goal; after the Expo scaffold issue lands)
 
 ```bash
 cd mobile

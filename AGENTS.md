@@ -12,9 +12,9 @@
 
 BuddyUp is a campus-only app where Northeastern students post small activities
 (pickup games, study sessions, food runs) and other students request to join.
-It ships on three surfaces: **PC web** and **mobile web** (one responsive Next.js app) and a
-**mobile app** (Expo / React Native in `mobile/`, core participant flow only) that uses the same
-`/api/v1` API.
+The MVP is **PC web** and **mobile web** (one responsive Next.js app). A **mobile app**
+(Expo / React Native in `mobile/`, core participant flow only, same `/api/v1` API) is a
+**stretch goal**, started only after the web MVP works; Haoran owns it alone.
 Course: CS6983 AI Coding, Fall 2026, Project 3 (team project). Plan and scope: `docs/p3/proposal.md`.
 
 ---
@@ -66,7 +66,7 @@ If something in a request conflicts with this file, point out the conflict and a
 | Lint | `eslint` + `eslint-config-next` | 9.39.5 / 16.4.3 |
 | Hosting | Vercel (preview deploy per PR) | — |
 | Real-time | Managed WebSocket provider, decided in issue #12 (stretch scope for P3) | TBD |
-| Mobile app | Expo (React Native) + Expo Router + `expo-secure-store`, in `mobile/` | Expo SDK pinned when scaffolded |
+| Mobile app (stretch) | Expo (React Native) + Expo Router + `expo-secure-store`, in `mobile/` | Expo SDK pinned when scaffolded |
 
 ### Version-specific notes
 
@@ -126,7 +126,7 @@ src/
     api/responses.ts              # ok(), created(), errorResponse() helpers
     constants/categories.ts       # Category enum ↔ label ↔ color mapping
 e2e/<feature>.spec.ts             # Playwright tests
-mobile/                           # Expo app (own package.json); talks to /api/v1 only, never to the DB
+mobile/                           # Stretch: Expo app (own package.json); talks to /api/v1 only, never to the DB
 prisma/schema.prisma              # Data model (PRD section 8)
 docs/                             # PRD, mockups, decisions, HW write-ups
 ```
@@ -223,7 +223,7 @@ Never weaken or delete a test to make it pass. If a test is wrong, explain why b
 | Component | Vitest + Testing Library (jsdom) | Form validation messages, button states, rendering by role | `src/components/**/*.test.tsx` |
 | Integration | Vitest (Node env) | Route handlers end-to-end through the service; DB mocked until #1, then a test database | `src/app/api/**/*.test.ts` with `// @vitest-environment node` at the top |
 | E2E | Playwright | Happy path of every P0 user story, desktop and mobile web | `e2e/*.spec.ts` |
-| Mobile app | `jest-expo` + React Native Testing Library | Screens and API client of the Expo app | `mobile/**/*.test.tsx` |
+| Mobile app (stretch) | `jest-expo` + React Native Testing Library | Screens and API client of the Expo app | `mobile/**/*.test.tsx` |
 
 Rules:
 - **Name tests after acceptance criteria** so coverage is traceable:
@@ -426,8 +426,8 @@ classes (`bg-surface`, `text-muted`, `border-line`, ...). **Never hard-code hex 
   - Claude Code config (`CLAUDE.md`, `.claude/`, `.mcp.json`) is now allowed, since P3 grades
     hooks, skills, MCP, and sub-agents. Other tools' config files are still banned.
   - New P3 timeline (due Dec 8) and `scope:stretch` label for US-09, US-10, US-11.
-  - Three surfaces: PC web, mobile web, and an Expo mobile app for the core participant flow.
-    The app authenticates with a bearer token kept in `expo-secure-store`.
+  - MVP is PC web + mobile web. An Expo mobile app (core participant flow, bearer token in
+    `expo-secure-store`) is a stretch goal owned by Haoran.
 <!-- Why: HW3 asks for evidence of iteration. Each version records what changed and why. -->
 
 - **v2 — 2026-10-30**: Changes from the before/after test (`docs/hw3/comparison.md`):
