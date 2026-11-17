@@ -4,11 +4,11 @@
 
 | | |
 |---|---|
-| **Project** | CS6983 AI Coding — Project 2 (Full-Stack Application) |
+| **Project** | CS6983 AI Coding — Project 3 (team project; first planned during HW3) |
 | **Author** | Haoran Lyu |
 | **Status** | Draft v1 — 2026-10-28 |
-| **Timeline** | Sprint 1: Oct 31 – Nov 5, 2026 · Sprint 2: Nov 6 – Nov 12, 2026 |
-| **Platform** | Responsive web app (v1); native iOS/Android clients planned later |
+| **Timeline** | Setup: Nov 18 – 20 · Sprint 1: Nov 21 – 28 · Sprint 2: Nov 29 – Dec 4 · Polish: Dec 5 – 7 · Due Dec 8, 2026 (see `docs/p3/proposal.md`) |
+| **Platform** | PC web + mobile web (one responsive Next.js app). Stretch: an Expo (React Native) mobile app for the core participant flow |
 
 ---
 
@@ -29,10 +29,11 @@ Students need a **trusted, campus-only place** to post a small activity, find pe
 2. Make it easy to browse and filter activities happening soon.
 3. Keep the community trusted: only verified university students, with reporting and moderation.
 4. Show live information (spots left, request status, chat) without manual refresh.
-5. Expose a documented public REST API so future iOS/Android clients can reuse the same backend.
+5. Expose a documented public REST API that the web app uses and a mobile app can reuse (Expo app is a stretch goal).
 
 ### Non-Goals (v1)
-- Native iOS/Android apps (planned post-P2; the API is designed for them).
+- Hosting and admin screens in the mobile app (they stay web-only; the app covers log in, Explore, detail, and request to join).
+- App Store / Play Store release (the app is demoed with Expo Go or a development build).
 - Payments, ticketing, or cost splitting.
 - Recurring/scheduled series of activities.
 - Friend lists, followers, or a social feed.
@@ -70,7 +71,7 @@ Priority: **P0** = must have, **P1** = should have, **P2** = nice to have. Estim
 
 **US-02 · Log in and log out** (P0, 2 pts)
 *As a student, I want to log in and out securely so that my account is protected.*
-- [ ] Valid credentials sign the user in (JWT session in an httpOnly cookie)
+- [ ] Valid credentials sign the user in (Auth.js session in an httpOnly cookie)
 - [ ] Invalid credentials show a generic error ("Email or password is incorrect")
 - [ ] Logging out ends the session and redirects to the landing page
 - [ ] Protected pages and API routes redirect/return 401 when not signed in
@@ -165,7 +166,7 @@ Priority: **P0** = must have, **P1** = should have, **P2** = nice to have. Estim
 
 | Area | Requirement |
 |---|---|
-| Auth | Email + password, university-domain restriction, JWT session (httpOnly cookie), role-based access (USER / ADMIN) |
+| Auth | Email + password, university-domain restriction, Auth.js session (httpOnly cookie), role-based access (USER / ADMIN) |
 | Activities | CRUD for hosts; feed with category/date filters; statuses OPEN → FULL / CANCELLED / COMPLETED |
 | Membership | Join requests with statuses PENDING → APPROVED / DECLINED / WITHDRAWN; capacity enforced on the server |
 | Real-time | Live spots, request status, new-request alerts, and group chat via a managed WebSocket service |
@@ -227,14 +228,14 @@ Desktop web layout (content max width ~1180px) that stays responsive down to pho
 | Frontend | Next.js (App Router) + React + TypeScript + TailwindCSS |
 | Backend | Next.js Route Handlers under `/api/v1` |
 | Database | PostgreSQL (hosted, e.g., Neon) with Prisma ORM |
-| Auth | JWT sessions in httpOnly cookies, bcrypt password hashing |
+| Auth | Auth.js (Credentials provider, JWT session strategy) in httpOnly cookies, bcrypt password hashing |
 | Real-time | Managed WebSocket service (e.g., Pusher Channels) — final choice in a Sprint 1 spike |
 | Validation | Zod schemas shared by client and server |
 | Testing | Vitest (unit + integration), Playwright (E2E, desktop and mobile viewports) |
 | CI/CD | GitHub Actions (lint → test → security scan → build), Vercel preview deploys on PRs, auto-deploy on merge to `main` |
 | API docs | OpenAPI 3 + Swagger UI |
 
-Because all business logic sits behind the versioned REST API, future native iOS/Android apps (e.g., React Native) can reuse the backend unchanged.
+Because all business logic sits behind the versioned REST API, the stretch-goal Expo mobile app reuses the backend unchanged. It signs in with a bearer token instead of the web session cookie.
 
 ## 11. Non-Functional Requirements
 
@@ -253,14 +254,14 @@ Because all business logic sits behind the versioned REST API, future native iOS
 
 | Item | Notes |
 |---|---|
-| Partner not yet assigned | Scope is planned for a pair; if working solo, P1 stories (US-10, US-11, US-12) may move to stretch goals |
+| Mobile app vs. Dec 8 deadline | The Expo app is a stretch goal, started only after the web MVP works, and covers only the core participant flow |
 | Real-time on Vercel | Serverless functions can't hold WebSockets; use a managed service (decide in Sprint 1) |
 | Email verification | v1 restricts the email domain only; sending verification emails is a stretch goal |
 | Seed data for demo | Need a seed script with realistic users and activities |
 
 ## 14. Future Work
 
-- Native iOS and Android apps (React Native / Expo) using the same `/api/v1` API
+- Full mobile app parity (hosting, managing requests, admin) and store release
 - Push notifications
 - Map view and nearby activities
 - Recurring activities and ratings after activities

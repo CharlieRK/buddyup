@@ -10,9 +10,12 @@
   to the stack, architecture, or conventions. See the Changelog at the bottom.
 -->
 
-BuddyUp is a campus-only web app where Northeastern students post small activities
+BuddyUp is a campus-only app where Northeastern students post small activities
 (pickup games, study sessions, food runs) and other students request to join.
-Course: CS6983 AI Coding, Fall 2026, Project 2.
+The MVP is **PC web** and **mobile web** (one responsive Next.js app). A **mobile app**
+(Expo / React Native in `mobile/`, core participant flow only, same `/api/v1` API) is a
+**stretch goal**, started only after the web MVP works; Haoran owns it alone.
+Course: CS6983 AI Coding, Fall 2026, Project 3 (team project). Plan and scope: `docs/p3/proposal.md`.
 
 ---
 
@@ -57,12 +60,13 @@ If something in a request conflicts with this file, point out the conflict and a
 | Database | PostgreSQL (hosted, e.g. Neon) | — |
 | ORM | `prisma` / `@prisma/client` (pinned exact) | 7.10.1 |
 | Validation | `zod` | 4.6.7 |
-| Auth | `jose` (JWT) + `bcryptjs` (password hashing) | 6.2.13 / 3.0.3 |
+| Auth | Auth.js (`next-auth`, Credentials provider, JWT session strategy) + `bcryptjs` (password hashing) | pinned when added in #4 / 3.0.3 |
 | Unit + integration tests | `vitest` + `@testing-library/react` + `jsdom` | 5.0.5 / 16.3.3 / 29.1.1 |
 | E2E tests | `@playwright/test` (desktop + mobile projects) | 1.64.1 |
 | Lint | `eslint` + `eslint-config-next` | 9.39.5 / 16.4.3 |
 | Hosting | Vercel (preview deploy per PR) | — |
-| Real-time | Managed WebSocket provider, decided in issue #12 | TBD |
+| Real-time | Managed WebSocket provider, decided in issue #12 (stretch scope for P3) | TBD |
+| Mobile app (stretch) | Expo (React Native) + Expo Router + `expo-secure-store`, in `mobile/` | Expo SDK pinned when scaffolded |
 
 ### Version-specific notes
 
@@ -122,6 +126,7 @@ src/
     api/responses.ts              # ok(), created(), errorResponse() helpers
     constants/categories.ts       # Category enum ↔ label ↔ color mapping
 e2e/<feature>.spec.ts             # Playwright tests
+mobile/                           # Stretch: Expo app (own package.json); talks to /api/v1 only, never to the DB
 prisma/schema.prisma              # Data model (PRD section 8)
 docs/                             # PRD, mockups, decisions, HW write-ups
 ```
@@ -145,7 +150,7 @@ Page / Component  ──fetch──▶  /api/v1 route handler  ──▶  servic
 - **Server Components by default.** Add `"use client"` only to components that need state,
   effects, or event handlers, and keep those components small.
 - Until auth (issue #5) lands: if `getCurrentUser()` doesn't exist yet, create it in
-  `lib/auth/session.ts` as a typed stub and mark it `// TODO(#5): replace with JWT session`.
+  `lib/auth/session.ts` as a typed stub and mark it `// TODO(#5): replace with Auth.js session`.
   **The stub must still behave like real auth:** return `null` when there is no `session` cookie,
   and `requireUser()` must throw an `HttpError(401)` that route handlers turn into a `401`
   response. Never hard-code an always-signed-in user.
@@ -217,7 +222,8 @@ Never weaken or delete a test to make it pass. If a test is wrong, explain why b
 | Unit | Vitest | Zod schemas, services, utilities | `src/**/*.test.ts` |
 | Component | Vitest + Testing Library (jsdom) | Form validation messages, button states, rendering by role | `src/components/**/*.test.tsx` |
 | Integration | Vitest (Node env) | Route handlers end-to-end through the service; DB mocked until #1, then a test database | `src/app/api/**/*.test.ts` with `// @vitest-environment node` at the top |
-| E2E | Playwright | Happy path of every P0 user story, desktop and mobile | `e2e/*.spec.ts` |
+| E2E | Playwright | Happy path of every P0 user story, desktop and mobile web | `e2e/*.spec.ts` |
+| Mobile app (stretch) | `jest-expo` + React Native Testing Library | Screens and API client of the Expo app | `mobile/**/*.test.tsx` |
 
 Rules:
 - **Name tests after acceptance criteria** so coverage is traceable:
@@ -331,7 +337,9 @@ classes (`bg-surface`, `text-muted`, `border-line`, ...). **Never hard-code hex 
      down means agents produce branch names, commits, and PR text we can use as-is. -->
 
 - **Board**: https://github.com/users/CharlieRK/projects/1 — columns Backlog → Sprint Todo →
-  In Progress → In Review → Done. Sprints are milestones "Sprint 1" (due Nov 5) and "Sprint 2" (due Nov 12).
+  In Progress → In Review → Done. P3 phases (see `docs/p3/proposal.md`): Setup Nov 18–20,
+  milestone "P3 Sprint 1" (Nov 21 – Nov 28), milestone "P3 Sprint 2" (Nov 29 – Dec 4),
+  polish Dec 5–7, due Dec 8. Issues labeled `scope:stretch` are only picked up if time allows.
 - **One branch per issue**, created from up-to-date `main`:
   `feature/<issue>-<short-desc>`, `fix/<issue>-...`, `chore/<issue>-...`, `docs/<issue>-...`
   (e.g. `feature/7-create-activity`). Never commit directly to `main`.
@@ -368,9 +376,10 @@ classes (`bg-surface`, `text-muted`, `border-line`, ...). **Never hard-code hex 
   No UI component kits (shadcn, MUI, Chakra), no CSS-in-JS, no Axios (use `fetch`), no Moment/Day.js
   (use `Intl.DateTimeFormat`).
 - **Don't upgrade Prisma to 8.x** (its `latest` tag is a release candidate). Keep versions pinned.
-- **Don't create agent/tool config files** (`.cursor/`, `.claude/`, `.agents/`, `.windsurf/`,
-  skills folders, a second AGENTS.md). If you ever run `prisma init`, pass `--no-skills`.
-  `agentRules: false` in `next.config.ts` must stay.
+- **Claude Code config lives only in `CLAUDE.md`, `.claude/` (settings, hooks, skills, agents) and
+  `.mcp.json`**, each added by its own issue. Don't create other tools' config (`.cursor/`,
+  `.agents/`, `.windsurf/`) or a second AGENTS.md. If you ever run `prisma init`, pass
+  `--no-skills`. `agentRules: false` in `next.config.ts` must stay.
 - Don't use `any`, `@ts-ignore`, or `eslint-disable` to get past errors.
 - Don't put business logic in components or route handlers (Section 2.2).
 - Don't write raw SQL or bypass `lib/db.ts`.
@@ -381,8 +390,8 @@ classes (`bg-surface`, `text-muted`, `border-line`, ...). **Never hard-code hex 
 
 ### Security requirements
 - Passwords hashed with `bcryptjs` (cost ≥ 10); never returned by any API.
-- JWT signed with `jose` (HS256, secret from `JWT_SECRET`), stored in an `httpOnly`, `secure`,
-  `sameSite=lax` cookie; 7-day expiry.
+- Sessions via Auth.js (JWT strategy, secret from `AUTH_SECRET`), stored in an `httpOnly`, `secure`,
+  `sameSite=lax` cookie; 7-day `maxAge`. Don't hand-roll JWT signing.
 - Sign-up restricted to `@northeastern.edu`; suspended users can't log in.
 - Every route checks authentication and authorization (owner/host/admin) before doing work.
 - Generic login error ("Email or password is incorrect"); rate-limit auth endpoints.
@@ -411,6 +420,14 @@ classes (`bg-surface`, `text-muted`, `border-line`, ...). **Never hard-code hex 
 
 ## Changelog
 
+- **v3 — 2026-11-17**: Moved to Project 3 (`docs/p3/proposal.md`):
+  - Auth switches from custom `jose` JWT to Auth.js (P3 requires Auth.js, Clerk, or equivalent);
+    `@northeastern.edu` restriction and bcrypt hashing stay.
+  - Claude Code config (`CLAUDE.md`, `.claude/`, `.mcp.json`) is now allowed, since P3 grades
+    hooks, skills, MCP, and sub-agents. Other tools' config files are still banned.
+  - New P3 timeline (due Dec 8) and `scope:stretch` label for US-09, US-10, US-11.
+  - MVP is PC web + mobile web. An Expo mobile app (core participant flow, bearer token in
+    `expo-secure-store`) is a stretch goal owned by Haoran.
 <!-- Why: HW3 asks for evidence of iteration. Each version records what changed and why. -->
 
 - **v2 — 2026-10-30**: Changes from the before/after test (`docs/hw3/comparison.md`):

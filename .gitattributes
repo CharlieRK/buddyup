@@ -1,0 +1,5 @@
+# Windows and macOS share this repo: store text files with LF so diffs and hooks behave the same.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary
