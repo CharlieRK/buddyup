@@ -3,7 +3,13 @@
 Nov 16, 2026 · Haoran Lyu · Status: **agreed with partner (@Sijia711) on Nov 17; waiting for professor approval**
 
 > **Update, Nov 17:** the P3 deadline moved from Dec 16 to **Dec 8**. The timeline below is
-> compressed to match; scope and work split are unchanged.
+> compressed to match.
+>
+> **Update, Nov 17 (scope):** BuddyUp ships on **PC web, mobile web, and a mobile app**. PC and
+> mobile web are one responsive Next.js app. The mobile app is an Expo (React Native) app for
+> the core participant flow (log in, Explore, detail, request to join) using the same `/api/v1`
+> API; hosting and admin stay web-only. Tasks are assigned by Haoran, not by the work-split
+> table below, which is now only a suggestion.
 
 ## TL;DR
 

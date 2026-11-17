@@ -8,7 +8,7 @@
 | **Author** | Haoran Lyu |
 | **Status** | Draft v1 — 2026-10-28 |
 | **Timeline** | Setup: Nov 18 – 20 · Sprint 1: Nov 21 – 28 · Sprint 2: Nov 29 – Dec 4 · Polish: Dec 5 – 7 · Due Dec 8, 2026 (see `docs/p3/proposal.md`) |
-| **Platform** | Responsive web app (v1); native iOS/Android clients planned later |
+| **Platform** | PC web + mobile web (one responsive Next.js app) and an Expo (React Native) mobile app for the core participant flow |
 
 ---
 
@@ -29,10 +29,11 @@ Students need a **trusted, campus-only place** to post a small activity, find pe
 2. Make it easy to browse and filter activities happening soon.
 3. Keep the community trusted: only verified university students, with reporting and moderation.
 4. Show live information (spots left, request status, chat) without manual refresh.
-5. Expose a documented public REST API so future iOS/Android clients can reuse the same backend.
+5. Expose a documented public REST API that the web app and the Expo mobile app both use.
 
 ### Non-Goals (v1)
-- Native iOS/Android apps (planned post-P2; the API is designed for them).
+- Hosting and admin screens in the mobile app (they stay web-only; the app covers log in, Explore, detail, and request to join).
+- App Store / Play Store release (the app is demoed with Expo Go or a development build).
 - Payments, ticketing, or cost splitting.
 - Recurring/scheduled series of activities.
 - Friend lists, followers, or a social feed.
@@ -234,7 +235,7 @@ Desktop web layout (content max width ~1180px) that stays responsive down to pho
 | CI/CD | GitHub Actions (lint → test → security scan → build), Vercel preview deploys on PRs, auto-deploy on merge to `main` |
 | API docs | OpenAPI 3 + Swagger UI |
 
-Because all business logic sits behind the versioned REST API, future native iOS/Android apps (e.g., React Native) can reuse the backend unchanged.
+Because all business logic sits behind the versioned REST API, the Expo mobile app reuses the backend unchanged. It signs in with a bearer token instead of the web session cookie.
 
 ## 11. Non-Functional Requirements
 
@@ -253,14 +254,14 @@ Because all business logic sits behind the versioned REST API, future native iOS
 
 | Item | Notes |
 |---|---|
-| Partner not yet assigned | Scope is planned for a pair; if working solo, P1 stories (US-10, US-11, US-12) may move to stretch goals |
+| Mobile app scope vs. Dec 8 deadline | The Expo app covers only the core participant flow; if Sprint 2 slips, the bonus triage agent is cut first |
 | Real-time on Vercel | Serverless functions can't hold WebSockets; use a managed service (decide in Sprint 1) |
 | Email verification | v1 restricts the email domain only; sending verification emails is a stretch goal |
 | Seed data for demo | Need a seed script with realistic users and activities |
 
 ## 14. Future Work
 
-- Native iOS and Android apps (React Native / Expo) using the same `/api/v1` API
+- Full mobile app parity (hosting, managing requests, admin) and store release
 - Push notifications
 - Map view and nearby activities
 - Recurring activities and ratings after activities
