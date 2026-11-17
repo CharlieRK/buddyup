@@ -331,9 +331,9 @@ classes (`bg-surface`, `text-muted`, `border-line`, ...). **Never hard-code hex 
      down means agents produce branch names, commits, and PR text we can use as-is. -->
 
 - **Board**: https://github.com/users/CharlieRK/projects/1 — columns Backlog → Sprint Todo →
-  In Progress → In Review → Done. P3 phases (see `docs/p3/proposal.md`): Setup Nov 18–23,
-  milestone "P3 Sprint 1" (Nov 24 – Dec 3), milestone "P3 Sprint 2" (Dec 4 – Dec 11),
-  polish Dec 12–15, due Dec 16. Issues labeled `scope:stretch` are only picked up if time allows.
+  In Progress → In Review → Done. P3 phases (see `docs/p3/proposal.md`): Setup Nov 18–20,
+  milestone "P3 Sprint 1" (Nov 21 – Nov 28), milestone "P3 Sprint 2" (Nov 29 – Dec 4),
+  polish Dec 5–7, due Dec 8. Issues labeled `scope:stretch` are only picked up if time allows.
 - **One branch per issue**, created from up-to-date `main`:
   `feature/<issue>-<short-desc>`, `fix/<issue>-...`, `chore/<issue>-...`, `docs/<issue>-...`
   (e.g. `feature/7-create-activity`). Never commit directly to `main`.
@@ -419,7 +419,7 @@ classes (`bg-surface`, `text-muted`, `border-line`, ...). **Never hard-code hex 
     `@northeastern.edu` restriction and bcrypt hashing stay.
   - Claude Code config (`CLAUDE.md`, `.claude/`, `.mcp.json`) is now allowed, since P3 grades
     hooks, skills, MCP, and sub-agents. Other tools' config files are still banned.
-  - New P3 timeline and `scope:stretch` label for US-09, US-10, US-11.
+  - New P3 timeline (due Dec 8) and `scope:stretch` label for US-09, US-10, US-11.
 <!-- Why: HW3 asks for evidence of iteration. Each version records what changed and why. -->
 
 - **v2 — 2026-10-30**: Changes from the before/after test (`docs/hw3/comparison.md`):

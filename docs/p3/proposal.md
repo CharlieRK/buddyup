@@ -1,6 +1,9 @@
 # BuddyUp for Project 3: Team Proposal
 
-Nov 16, 2026 · Haoran Lyu · Status: **waiting for partner agreement and professor approval**
+Nov 16, 2026 · Haoran Lyu · Status: **agreed with partner (@Sijia711) on Nov 17; waiting for professor approval**
+
+> **Update, Nov 17:** the P3 deadline moved from Dec 16 to **Dec 8**. The timeline below is
+> compressed to match; scope and work split are unchanged.
 
 ## TL;DR
 
@@ -92,17 +95,17 @@ validation (+3) and Stryker mutation testing (+3).
 
 ## Timeline
 
-Two one-and-a-half-week sprints fit before the Dec 16 deadline, with the last days kept for polish
-and deliverables.
+Two one-week sprints fit before the Dec 8 deadline, with the last three days kept for polish and
+deliverables. If Sprint 1 slips, the bonus triage agent is the first thing to cut.
 
 | Phase | Dates (2026) |
 |---|---|
-| Setup + Claude Code config | Nov 18 – Nov 23 |
-| Sprint 1: core flow | Nov 24 – Dec 3 |
-| Sprint 2: admin + agent | Dec 4 – Dec 11 |
-| Latest idea approval | Dec 9 |
-| Polish, blog, video | Dec 12 – Dec 15 |
-| **P3 due** | **Dec 16** |
+| Setup + Claude Code config | Nov 18 – Nov 20 |
+| Sprint 1: core flow | Nov 21 – Nov 28 |
+| Sprint 2: admin + agent | Nov 29 – Dec 4 |
+| Latest idea approval | Dec 1 |
+| Polish, blog, video | Dec 5 – Dec 7 |
+| **P3 due** | **Dec 8** |
 
 - **Setup:** `CLAUDE.md` with @imports, hooks, `.mcp.json`, Auth.js, Neon, Vercel, CI skeleton,
   new milestones.
@@ -133,11 +136,11 @@ Happy to swap any of these. This is a starting point.
 
 ## Open questions and next steps
 
-- [ ] Do you want to build BuddyUp for P3? If you'd rather pitch something else, let's compare by
+- [x] Do you want to build BuddyUp for P3? If you'd rather pitch something else, let's compare by
       Nov 18, 2026.
-- [ ] Is the work split OK, or should we swap areas?
+- [x] Is the work split OK, or should we swap areas? (agreed as proposed)
 - [ ] Post the idea in Slack #projects for approval as soon as we agree. The hard deadline is one
-      week before Dec 16, so no later than Dec 9, 2026.
+      week before the deadline, so no later than Dec 1, 2026 (was Dec 9 before the deadline moved).
 - [ ] Kick off Sprint 1 by Nov 20, 2026: reset milestones, add you as a collaborator with admin
       rights, and set up Claude Code on both machines.
 

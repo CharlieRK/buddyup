@@ -7,7 +7,7 @@
 | **Project** | CS6983 AI Coding — Project 3 (team project; first planned during HW3) |
 | **Author** | Haoran Lyu |
 | **Status** | Draft v1 — 2026-10-28 |
-| **Timeline** | Setup: Nov 18 – 23 · Sprint 1: Nov 24 – Dec 3 · Sprint 2: Dec 4 – Dec 11 · Due Dec 16, 2026 (see `docs/p3/proposal.md`) |
+| **Timeline** | Setup: Nov 18 – 20 · Sprint 1: Nov 21 – 28 · Sprint 2: Nov 29 – Dec 4 · Polish: Dec 5 – 7 · Due Dec 8, 2026 (see `docs/p3/proposal.md`) |
 | **Platform** | Responsive web app (v1); native iOS/Android clients planned later |
 
 ---
