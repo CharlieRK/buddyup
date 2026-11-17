@@ -4,10 +4,10 @@
 
 | | |
 |---|---|
-| **Project** | CS6983 AI Coding — Project 2 (Full-Stack Application) |
+| **Project** | CS6983 AI Coding — Project 3 (team project; first planned during HW3) |
 | **Author** | Haoran Lyu |
 | **Status** | Draft v1 — 2026-10-28 |
-| **Timeline** | Sprint 1: Oct 31 – Nov 5, 2026 · Sprint 2: Nov 6 – Nov 12, 2026 |
+| **Timeline** | Setup: Nov 18 – 23 · Sprint 1: Nov 24 – Dec 3 · Sprint 2: Dec 4 – Dec 11 · Due Dec 16, 2026 (see `docs/p3/proposal.md`) |
 | **Platform** | Responsive web app (v1); native iOS/Android clients planned later |
 
 ---
@@ -70,7 +70,7 @@ Priority: **P0** = must have, **P1** = should have, **P2** = nice to have. Estim
 
 **US-02 · Log in and log out** (P0, 2 pts)
 *As a student, I want to log in and out securely so that my account is protected.*
-- [ ] Valid credentials sign the user in (JWT session in an httpOnly cookie)
+- [ ] Valid credentials sign the user in (Auth.js session in an httpOnly cookie)
 - [ ] Invalid credentials show a generic error ("Email or password is incorrect")
 - [ ] Logging out ends the session and redirects to the landing page
 - [ ] Protected pages and API routes redirect/return 401 when not signed in
@@ -165,7 +165,7 @@ Priority: **P0** = must have, **P1** = should have, **P2** = nice to have. Estim
 
 | Area | Requirement |
 |---|---|
-| Auth | Email + password, university-domain restriction, JWT session (httpOnly cookie), role-based access (USER / ADMIN) |
+| Auth | Email + password, university-domain restriction, Auth.js session (httpOnly cookie), role-based access (USER / ADMIN) |
 | Activities | CRUD for hosts; feed with category/date filters; statuses OPEN → FULL / CANCELLED / COMPLETED |
 | Membership | Join requests with statuses PENDING → APPROVED / DECLINED / WITHDRAWN; capacity enforced on the server |
 | Real-time | Live spots, request status, new-request alerts, and group chat via a managed WebSocket service |
@@ -227,7 +227,7 @@ Desktop web layout (content max width ~1180px) that stays responsive down to pho
 | Frontend | Next.js (App Router) + React + TypeScript + TailwindCSS |
 | Backend | Next.js Route Handlers under `/api/v1` |
 | Database | PostgreSQL (hosted, e.g., Neon) with Prisma ORM |
-| Auth | JWT sessions in httpOnly cookies, bcrypt password hashing |
+| Auth | Auth.js (Credentials provider, JWT session strategy) in httpOnly cookies, bcrypt password hashing |
 | Real-time | Managed WebSocket service (e.g., Pusher Channels) — final choice in a Sprint 1 spike |
 | Validation | Zod schemas shared by client and server |
 | Testing | Vitest (unit + integration), Playwright (E2E, desktop and mobile viewports) |
