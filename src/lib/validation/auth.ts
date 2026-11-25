@@ -1,8 +1,11 @@
 import { z } from "zod";
+import { exceedsPasswordByteLimit, PASSWORD_MAX_BYTES } from "@/lib/auth/password-policy";
+
+// Re-exported so existing imports of the limit from this module keep working.
+export { PASSWORD_MAX_BYTES };
 
 export const ALLOWED_EMAIL_DOMAIN = "@northeastern.edu";
 export const PASSWORD_MIN_LENGTH = 8;
-export const PASSWORD_MAX_BYTES = 72;
 
 export const signupSchema = z.object({
   name: z.string().trim().min(1, "Enter your name."),
@@ -22,7 +25,7 @@ export const signupSchema = z.object({
   password: z
     .string()
     .min(PASSWORD_MIN_LENGTH, `Use at least ${PASSWORD_MIN_LENGTH} characters.`)
-    .refine((password) => new TextEncoder().encode(password).length <= PASSWORD_MAX_BYTES, {
+    .refine((password) => !exceedsPasswordByteLimit(password), {
       message: `Use ${PASSWORD_MAX_BYTES} bytes or fewer.`,
     }),
 });
