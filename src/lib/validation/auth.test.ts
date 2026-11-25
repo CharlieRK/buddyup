@@ -113,10 +113,13 @@ describe("signupSchema", () => {
       expect(result.password).toBe("  pass word  ");
     });
 
-    it("counts length in UTF-16 code units, so 4 emoji satisfy the minimum (US-01 AC3)", () => {
-      // Known limitation: each emoji is 2 UTF-16 units, so 4 emoji = 8 units.
-      // Pinned so a switch to code-point counting is a deliberate change.
-      expect(signupSchema.safeParse({ ...valid, password: "😀".repeat(4) }).success).toBe(true);
+    it("counts length in Unicode code points, so 4 emoji are too short and 8 are enough (US-01 AC3)", () => {
+      // Zod 4 counts code points: one emoji is 1 character (2 UTF-16 units, 4 bytes).
+      // Pinned so a change to the counting rule is a deliberate decision.
+      expect(fieldErrors({ ...valid, password: "😀".repeat(4) })?.password).toContain(
+        "Use at least 8 characters.",
+      );
+      expect(signupSchema.safeParse({ ...valid, password: "😀".repeat(8) }).success).toBe(true);
     });
   });
 });
