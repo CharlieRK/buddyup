@@ -1,0 +1,1337 @@
+▗ ▗   ▖ ▖  Claude Code v2.1.332
+           Sonnet 5.5 · Claude Enterprise
+ ▘▘   ▝▝   ~/buddyup
+
+
+❯ /clear                                                                        
+
+❯ We are working on GitHub Issue #4 (US-01: university email sign-up) for       
+  BuddyUp P3 and HW4.                                                           
+                                                                                
+  Our current scope is sign-up input validation and password hashing, covering  
+  the relevant parts of AC1, AC2, and AC3. Duplicate email handling, database   
+  persistence, UI, and Auth.js session integration are out of scope for now.    
+                                                                                
+  EXPLORE PHASE ONLY:                                                           
+  1. Read GitHub Issue #4 using gh issue view 4.                                
+  2. Use Glob, Grep, and Read tools explicitly to inspect the existing          
+  codebase.                                                                     
+  3. Read the relevant sections of docs/PRD.md, AGENTS.md, package.json,        
+  prisma/schema.prisma, and Vitest configuration.                               
+  4. Identify existing implementations, missing functionality, dependencies,    
+  and applicable coding conventions.                                            
+  5. Report the relevant files, acceptance criteria, and recommended test       
+  cases.                                                                        
+                                                                                
+  Do not modify any files, install dependencies, write implementation code, or  
+  create commits. Stop after reporting your findings.                           
+
+⏺ Bash(gh issue view 4)
+  ⎿  title:  Implement sign-up with university email (US-01)
+     state:  OPEN
+     author: CharlieRK
+     … +37 lines (ctrl+o to expand)
+
+  Searched for 2 patterns, read 4 files, listed 1 directory · 3 failed (ctrl+o to expand)
+
+⏺ Bash(sed -n 62,74p docs/PRD.md; sed -n 203,212p docs/PRD.md; ls
+      node_modules/zod >/dev/null 2>&1 && echo zod-installed || echo
+      zod-missing; grep '"version"' node_mod…)
+  ⎿  ### Sprint 1 — Accounts & core activity flow
+
+     **US-01 · Sign up with university email** (P0, 3 pts)
+     … +27 lines (ctrl+o to expand)
+
+⏺ Explore report: Issue #4 (US-01), validation and hashing slice
+
+  I made no changes. I used find, grep, and Read through Bash because the Glob
+  and Grep tools aren't available in this session.
+
+  Issue and acceptance criteria
+
+  Issue #4 is open, P0, estimate 3, milestone Sprint 1. The API is POST 
+  /api/v1/auth/signup and the mockup is docs/mockups/03-signup.png.
+
+  ┌─────┬───────────────────────────────────┬───────────────────────────────┐
+  │ AC  │               Text                │        In this slice?         │
+  ├─────┼───────────────────────────────────┼───────────────────────────────┤
+  │     │ Form accepts name, email,         │ Partly: only the shared Zod   │
+  │ AC1 │ password                          │ schema for those three        │
+  │     │                                   │ fields. No form UI.           │
+  ├─────┼───────────────────────────────────┼───────────────────────────────┤
+  │ AC2 │ Only @northeastern.edu emails     │ Yes                           │
+  │     │ accepted, with a clear error      │                               │
+  ├─────┼───────────────────────────────────┼───────────────────────────────┤
+  │     │ Password ≥ 8 characters, stored   │ Yes: the length rule and the  │
+  │ AC3 │ bcrypt-hashed, never plain text   │ hashing helper. Storing is    │
+  │     │                                   │ out of scope.                 │
+  ├─────┼───────────────────────────────────┼───────────────────────────────┤
+  │ AC4 │ Duplicate emails rejected         │ Out of scope                  │
+  ├─────┼───────────────────────────────────┼───────────────────────────────┤
+  │ AC5 │ Signed in via Auth.js, then       │ Out of scope                  │
+  │     │ profile setup                     │                               │
+  └─────┴───────────────────────────────────┴───────────────────────────────┘
+
+  The issue says to ask before adding next-auth. This slice doesn't need it.
+
+  Existing code
+
+  - No src/lib/ exists yet. There are no validation, auth, password, or service
+    files, and no tests.
+  - src/app/ has only layout.tsx, page.tsx, globals.css, and favicon.ico.
+  - e2e/ contains only .gitkeep.
+  - prisma/schema.prisma has User with email @unique, passwordHash String, and
+    name String. Nothing in the schema needs to change for this slice. The
+    generator outputs to src/generated/prisma.
+  - Dependencies are already installed: bcryptjs 3.0.3 (it ships its own types)
+    and zod 4.6.7. Nothing needs to be installed.
+  - package.json still lists jose. It must not be used for new work.
+  - Vitest setup:
+    - jsdom is the default environment and the @ alias is wired.
+    - It includes only src/**/*.test.{ts,tsx}.
+    - vitest.setup.ts loads jest-dom.
+    - Pure-function tests don't need any environment override.
+  - The @/* path alias is set in tsconfig.json.
+  - .env.example: my grep for a domain or allow-list variable found nothing. The
+    domain should be a constant, not an env var, unless you want it
+    configurable.
+
+  Applicable conventions (AGENTS.md)
+
+  - Files:
+    - src/lib/validation/auth.ts, with signupSchema and type SignupInput = 
+      z.infer<typeof signupSchema>.
+    - src/lib/auth/password.ts, with hashPassword() and verifyPassword().
+    - Tests sit next to each file as auth.test.ts and password.test.ts.
+  - Zod 4:
+    - Use z.email() and z.flattenError(error).
+    - Use named exports, @/ imports, no any, and no non-null !.
+  - bcrypt: cost must be ≥ 10. No password is ever returned or logged.
+  - Limits: the AGENTS.md input-size rule lists title, request message, and chat
+    limits only. There is no name or password maximum. bcrypt truncates input
+    at 72 bytes, so a password max is worth deciding.
+  - Copy: sentence case, saying what to fix. For example, "Use your
+    @northeastern.edu email address."
+  - Commits: Red, Green, and Refactor must be separate commits with (#4) in each
+    message. The branch should be feature/4-....
+
+  Open questions
+
+  1. Branch name. You're on feat/auth-hw4. AGENTS.md wants feature/4-<desc>. Do
+     you want me to create feature/4-signup-validation, or keep the current
+     branch for HW4?
+  2. Domain check. Should the check require exactly @northeastern.edu, or also
+     allow subdomains like @husky.neu.edu? The issue says only
+     @northeastern.edu, so I'd treat it as exact and case-insensitive.
+  3. Password maximum. Do you want one, such as 72 bytes, because of bcrypt
+     truncation? The issue doesn't mention one.
+  4. Extra rules. Should name be trimmed and required to be non-empty? Should
+     email be trimmed and lowercased?
+
+  Recommended tests
+
+  src/lib/validation/auth.test.ts
+  - accepts a valid name, email, and password (US-01 AC1)
+  - rejects a missing name, email, or password, with field-level errors (US-01
+    AC1)
+  - rejects an empty or whitespace-only name (US-01 AC1)
+  - accepts @northeastern.edu (US-01 AC2)
+  - accepts mixed-case Alice@Northeastern.EDU and normalizes it to lowercase
+    (US-01 AC2)
+  - rejects @gmail.com with the message "Use your @northeastern.edu email
+    address." (US-01 AC2)
+  - rejects look-alike domains: a@northeastern.edu.evil.com,
+    a@notnortheastern.edu, a@mail.northeastern.edu (US-01 AC2)
+  - rejects a malformed email such as foo or foo@ (US-01 AC2)
+  - rejects a 7-character password and accepts exactly 8 (US-01 AC3)
+  - reports errors under the right field keys via z.flattenError (US-01 AC1,
+    which the form later needs for per-field errors)
+
+  src/lib/auth/password.test.ts
+  - hashPassword returns a string that isn't the plain password (US-01 AC3)
+  - the hash starts with $2 and encodes cost ≥ 10 (US-01 AC3)
+  - hashing the same password twice gives different hashes, so salts are used
+    (US-01 AC3)
+  - verifyPassword returns true for the right password and false for a wrong one
+    (US-01 AC3)
+  - verifyPassword returns false for a malformed hash rather than throwing
+    (US-01 AC3)
+
+  Next step is a plan for your approval, then the Red commit. Tell me your
+  choices on questions 1–4 first.
+
+✻ Cogitated for 26s · done 5:10 PM
+
+※ recap: We're building US-01 sign-up for BuddyUp (issue #4), currently just the Zod validation and bcrypt hashing slice, and the explore phase is done with no files changed. Next, I need your answers on branch name, domain strictness, password maximum, and name/email trimming before I plan. (turn off recaps in /config)
+
+❯ Here are my decisions:                                                        
+                                                                                
+  1. Keep the current feat/auth-hw4 branch for this assignment.                 
+  2. Accept only the exact @northeastern.edu domain, case-insensitively. Reject 
+  subdomains and look-alike domains.                                            
+  3. Require passwords to be at least 8 characters and at most 72 UTF-8 bytes   
+  to prevent bcrypt truncation. Enforce the byte limit in both validation and   
+  the hashing helper.                                                           
+  4. Trim names and require non-empty values. Trim and lowercase emails. Never  
+  trim or normalize passwords.                                                  
+  5. Use bcrypt with a cost factor of 10.                                       
+                                                                                
+  PLAN PHASE ONLY:                                                              
+                                                                                
+  Create a detailed implementation plan for the validation and password hashing 
+  slice of Issue #4.                                                            
+                                                                                
+  Include:                                                                      
+  - Acceptance criteria and their test cases.                                   
+  - Files to create or modify.                                                  
+  - Two strict Red-Green-Refactor TDD cycles: signup validation and password    
+  hashing.                                                                      
+  - Exact verification commands.                                                
+  - Separate meaningful Git commits for each TDD stage, referencing #4.         
+  - Security considerations and out-of-scope requirements.                      
+                                                                                
+  Use the existing Zod and bcryptjs dependencies. Do not add dependencies,      
+  access the database, modify source files, or implement anything yet. Wait for 
+  my approval.                                                                  
+
+⏺ Updated plan
+  ⎿  /plan to preview
+  ⎿  Rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────╮
+     │ Plan: Issue #4 (US-01), sign-up validation and password hashing         │
+     │                                                                         │
+     │ Context                                                                 │
+     │                                                                         │
+     │ Issue #4 (US-01, university email sign-up) is split into slices. This   │
+     │ slice delivers only the pure, DB-free building blocks: the shared Zod   │
+     │ sign-up schema and the bcrypt password helpers. They are reused later   │
+     │ by POST /api/v1/auth/signup, the sign-up form, and Auth.js login (#5).  │
+     │                                                                         │
+     │ Branch: stay on feat/auth-hw4 (user decision; AGENTS.md says            │
+     │ feature/4-*, so this is a known deviation).                             │
+     │ No new dependencies. zod 4.6.7 and bcryptjs 3.0.3 are already           │
+     │ installed. No DB access.                                                │
+     │                                                                         │
+     │ Decisions (from user)                                                   │
+     │                                                                         │
+     │ - Email: trim, lowercase, then require the exact domain                 │
+     │   @northeastern.edu. Reject subdomains and look-alikes.                 │
+     │ - Name: trim, required non-empty.                                       │
+     │ - Password: at least 8 characters, at most 72 UTF-8 bytes. Never        │
+     │   trimmed or normalized. The byte limit is enforced in both the schema  │
+     │   and the hashing helper.                                               │
+     │ - bcrypt cost 10.                                                       │
+     │                                                                         │
+     │ Acceptance criteria covered                                             │
+     │                                                                         │
+     │ ┌─────────────────────────────────┬──────────────────────────────┐      │
+     │ │               AC                │          Covered by          │      │
+     │ ├─────────────────────────────────┼──────────────────────────────┤      │
+     │ │ US-01 AC1 (name, email,         │ signupSchema shape and       │      │
+     │ │ password fields)                │ per-field errors             │      │
+     │ ├─────────────────────────────────┼──────────────────────────────┤      │
+     │ │ US-01 AC2 (@northeastern.edu    │ email rules and message      │      │
+     │ │ only, clear error)              │                              │      │
+     │ ├─────────────────────────────────┼──────────────────────────────┤      │
+     │ │ US-01 AC3 (min 8, stored        │ length rule and hashPassword │      │
+     │ │ bcrypt-hashed)                  │  / verifyPassword            │      │
+     │ └─────────────────────────────────┴──────────────────────────────┘      │
+     │                                                                         │
+     │ Out of scope: AC4 duplicate emails, AC5 Auth.js session and redirect,   │
+     │ the sign-up form UI, the route handler, DB persistence, rate limiting,  │
+     │ OpenAPI, E2E, the jose removal, and adding next-auth.                   │
+     │                                                                         │
+     │ Files                                                                   │
+     │                                                                         │
+     │ Create only these four (no existing files are modified):                │
+     │ - src/lib/validation/auth.ts exports signupSchema, type SignupInput,    │
+     │   PASSWORD_MIN_LENGTH (8), PASSWORD_MAX_BYTES (72),                     │
+     │   ALLOWED_EMAIL_DOMAIN.                                                 │
+     │ - src/lib/validation/auth.test.ts                                       │
+     │ - src/lib/auth/password.ts exports hashPassword, verifyPassword,        │
+     │   BCRYPT_COST (10). It imports PASSWORD_MAX_BYTES from                  │
+     │   @/lib/validation/auth so the limit has one source.                    │
+     │ - src/lib/auth/password.test.ts                                         │
+     │                                                                         │
+     │ Both tests run in the default jsdom environment, which is fine for pure │
+     │ functions. Use @/ imports, named exports, no any, no !.                 │
+     │                                                                         │
+     │ Error messages (sentence case)                                          │
+     │                                                                         │
+     │ - name: "Enter your name."                                              │
+     │ - email malformed: "Enter a valid email address."                       │
+     │ - email wrong domain: "Use your @northeastern.edu email address."       │
+     │ - password short: "Use at least 8 characters."                          │
+     │ - password long: "Use 72 bytes or fewer." (emoji and non-ASCII use more │
+     │   than 1 byte per character)                                            │
+     │                                                                         │
+     │ Cycle 1: signup validation                                              │
+     │                                                                         │
+     │ Red tests in src/lib/validation/auth.test.ts, named by AC:              │
+     │ - accepts a valid name, email, and password (US-01 AC1)                 │
+     │ - rejects missing name, email, or password with errors on the right     │
+     │   field keys via z.flattenError (AC1)                                   │
+     │ - rejects an empty or whitespace-only name, and trims a padded name     │
+     │   (AC1)                                                                 │
+     │ - accepts @northeastern.edu; trims and lowercases                       │
+     │   Alice@Northeastern.EDU to alice@northeastern.edu (AC2)                │
+     │ - rejects @gmail.com with "Use your @northeastern.edu email address."   │
+     │   (AC2)                                                                 │
+     │ - rejects a@mail.northeastern.edu, a@northeastern.edu.evil.com,         │
+     │   a@notnortheastern.edu, a@northeastern.com (AC2)                       │
+     │ - rejects malformed emails foo, foo@, @northeastern.edu (AC2)           │
+     │ - rejects a 7-character password and accepts exactly 8 (AC3)            │
+     │ - accepts exactly 72 bytes and rejects 73 ASCII bytes (AC3)             │
+     │ - rejects a password under 72 characters but over 72 bytes, such as 25  │
+     │   x "€" (3 bytes each) (AC3)                                            │
+     │ - preserves password whitespace: "  pass word  " stays unchanged and is │
+     │   not trimmed (AC3)                                                     │
+     │                                                                         │
+     │ Steps:                                                                  │
+     │ 1. Write the tests and run npx vitest run                               │
+     │    src/lib/validation/auth.test.ts. They must fail because              │
+     │    @/lib/validation/auth doesn't exist.                                 │
+     │ 2. git add src/lib/validation/auth.test.ts, then commit test(auth): add │
+     │    failing tests for signup validation (#4).                            │
+     │                                                                         │
+     │ Green: write the minimum in auth.ts:                                    │
+     │ - name: z.string().trim().min(1, ...)                                   │
+     │ - email: z.string().trim().toLowerCase().pipe(z.email(...)), then a     │
+     │   refine with endsWith("@northeastern.edu") on the normalized value. A  │
+     │   subdomain ends in .northeastern.edu, so it fails.                     │
+     │ - password: z.string().min(8, ...) plus a refine using new              │
+     │   TextEncoder().encode(v).length <= 72                                  │
+     │ - Run the test file until it passes, then commit feat(auth): add signup │
+     │   validation schema (#4).                                               │
+     │                                                                         │
+     │ Refactor (only if useful): extract the byte-length helper and           │
+     │ constants, and tidy messages. Tests stay green. Commit refactor(auth):  │
+     │ tidy signup schema constants (#4). Skip if there is nothing to clean    │
+     │ up.                                                                     │
+     │                                                                         │
+     │ Cycle 2: password hashing                                               │
+     │                                                                         │
+     │ Red tests in src/lib/auth/password.test.ts:                             │
+     │ - hashPassword returns a string different from the input (US-01 AC3)    │
+     │ - the hash matches /^\$2[aby]\$10\$/ (bcrypt, cost 10) (AC3)            │
+     │ - hashing the same password twice gives different hashes (salted) (AC3) │
+     │ - verifyPassword is true for the right password and false for a wrong   │
+     │   one (AC3)                                                             │
+     │ - verifyPassword is case-sensitive and not whitespace-trimmed (AC3)     │
+     │ - hashPassword rejects a password over 72 bytes (a multibyte one under  │
+     │   72 characters) with a RangeError (AC3)                                │
+     │ - verifyPassword returns false, not throwing, for an over-72-byte       │
+     │   password (AC3)                                                        │
+     │ - verifyPassword returns false for a malformed hash such as             │
+     │   "not-a-hash" (AC3)                                                    │
+     │                                                                         │
+     │ Steps:                                                                  │
+     │ 1. Run npx vitest run src/lib/auth/password.test.ts. It must fail on    │
+     │    the missing module.                                                  │
+     │ 2. git add src/lib/auth/password.test.ts, then commit test(auth): add   │
+     │    failing tests for password hashing (#4).                             │
+     │                                                                         │
+     │ Green: write password.ts:                                               │
+     │ - hashPassword: check the byte length first and throw RangeError over   │
+     │   72, then bcrypt.hash(password, BCRYPT_COST)                           │
+     │ - verifyPassword: return false over 72 bytes, otherwise bcrypt.compare  │
+     │   wrapped so any error returns false                                    │
+     │ - Run the file until it passes, then commit feat(auth): add bcrypt      │
+     │   password helpers (#4).                                                │
+     │                                                                         │
+     │ Refactor (optional): share the byte-length helper between both modules  │
+     │ if it is duplicated. The helper would live in validation/auth.ts or the │
+     │ helpers stay private. Commit refactor(auth): share password             │
+     │ byte-length check (#4).                                                 │
+     │                                                                         │
+     │ Git hygiene                                                             │
+     │                                                                         │
+     │ - Stage explicit paths only. The untracked docs/hw4/setup-session.txt   │
+     │   is not part of these commits.                                         │
+     │ - Every commit message ends with the trailer Co-Authored-By: Claude     │
+     │   Sonnet 5.5 <noreply@anthropic.com>.                                   │
+     │ - Never combine tests and implementation in one commit. Never weaken a  │
+     │   test to pass it.                                                      │
+     │ - Don't run tsc during Red, since tests import modules that don't exist │
+     │   yet.                                                                  │
+     │                                                                         │
+     │ Verification                                                            │
+     │                                                                         │
+     │ Per cycle: npx vitest run src/lib/validation/auth.test.ts, then npx     │
+     │ vitest run src/lib/auth/password.test.ts.                               │
+     │                                                                         │
+     │ Final, as one command:                                                  │
+     │ npm test && npx tsc --noEmit && npm run lint                            │
+     │                                                                         │
+     │ E2E is not required, because this slice has no UI or route. Then git    │
+     │ log --oneline to confirm the Red commits come before their Green        │
+     │ commits. The report will list each AC against its test and note what is │
+     │ stubbed or out of scope.                                                │
+     │                                                                         │
+     │ Security considerations                                                 │
+     │                                                                         │
+     │ - Plain passwords are never logged, returned, or included in error      │
+     │   messages. Zod issues carry only static messages, not the input value. │
+     │ - Passwords are not trimmed or normalized, so what the user types is    │
+     │   what gets hashed.                                                     │
+     │ - The 72-byte cap is enforced in both the schema and the helpers, so a  │
+     │   long password can't be silently truncated by bcrypt.                  │
+     │ - The domain is matched exactly after normalization, so look-alike      │
+     │   domains and subdomains can't pass.                                    │
+     │ - bcrypt cost 10 meets the AGENTS.md minimum. The cost is a constant,   │
+     │   so raising it later is a one-line change.                             │
+     │ - verifyPassword fails closed and never throws on bad input.            │
+     │ - The cost-10 hash takes about 60 ms per call in tests, which is        │
+     │   acceptable.                                                           │
+     │                                                                         │
+     │ Open note                                                               │
+     │                                                                         │
+     │ Zod .min(8) counts UTF-16 code units, so one emoji counts as 2. That is │
+     │ simplest and the 72-byte cap bounds the other end. Say if you want      │
+     │ strict code-point counting instead.                                     │
+     ╰─────────────────────────────────────────────────────────────────────────╯
+
+❯ The plan looks good. Make the following adjustments:                          
+                                                                                
+  1. Execute only one TDD stage at a time. Stop after each stage and wait for   
+  my approval before continuing.                                                
+  2. Include at least one meaningful refactor with a separate commit, since HW4 
+  explicitly requires Red-Green-Refactor history. Do not manufacture            
+  unnecessary changes.                                                          
+  3. During Red, preferably demonstrate failing behavioral assertions using     
+  minimal non-functional stubs if necessary, rather than only a missing-module  
+  error. Do not implement the actual behavior before the Red commit.            
+  4. Keep the UTF-16 password length behavior for now and document this         
+  limitation.                                                                   
+  5. Do not close Issue #4 because this slice does not satisfy all its          
+  acceptance criteria.                                                          
+                                                                                
+  After approval, execute only Cycle 1 Red: write the signup validation tests,  
+  run them, commit the Red stage, and stop. Do not proceed to Green.            
+
+⏺ Updated plan
+  ⎿  /plan to preview
+
+⏺ Approved Claude's plan
+  ⎿  Plan saved to: 
+     ~/.claude/plans/pasted-content-id-b5b2-here-are-velvet-sunbeam.md · /plan 
+     to edit
+     Plan: Issue #4 (US-01), sign-up validation and password hashing
+
+     Context
+
+     Issue #4 (US-01, university email sign-up) is split into slices. This slice
+     delivers only the pure, DB-free building blocks: the shared Zod sign-up
+     schema and the bcrypt password helpers. They are reused later by POST 
+     /api/v1/auth/signup, the sign-up form, and Auth.js login (#5).
+
+     Branch: stay on feat/auth-hw4 (user decision; AGENTS.md says feature/4-*,
+     so this is a known deviation).
+     No new dependencies. zod 4.6.7 and bcryptjs 3.0.3 are already installed. No
+     DB access.
+
+     Decisions (from user)
+
+     - Email: trim, lowercase, then require the exact domain @northeastern.edu.
+       Reject subdomains and look-alikes.
+     - Name: trim, required non-empty.
+     - Password: at least 8 characters, at most 72 UTF-8 bytes. Never trimmed or
+       normalized. The byte limit is enforced in both the schema and the
+       hashing helper.
+     - bcrypt cost 10.
+
+     Acceptance criteria covered
+
+     ┌───────────────────────────────────┬────────────────────────────────┐
+     │                AC                 │           Covered by           │
+     ├───────────────────────────────────┼────────────────────────────────┤
+     │ US-01 AC1 (name, email, password  │ signupSchema shape and         │
+     │ fields)                           │ per-field errors               │
+     ├───────────────────────────────────┼────────────────────────────────┤
+     │ US-01 AC2 (@northeastern.edu      │ email rules and message        │
+     │ only, clear error)                │                                │
+     ├───────────────────────────────────┼────────────────────────────────┤
+     │ US-01 AC3 (min 8, stored          │ length rule and hashPassword / │
+     │ bcrypt-hashed)                    │  verifyPassword                │
+     └───────────────────────────────────┴────────────────────────────────┘
+
+     Out of scope: AC4 duplicate emails, AC5 Auth.js session and redirect, the
+     sign-up form UI, the route handler, DB persistence, rate limiting, OpenAPI,
+     E2E, the jose removal, and adding next-auth.
+
+     Files
+
+     Create only these four (no existing files are modified):
+     - src/lib/validation/auth.ts exports signupSchema, type SignupInput,
+       PASSWORD_MIN_LENGTH (8), PASSWORD_MAX_BYTES (72), ALLOWED_EMAIL_DOMAIN.
+     - src/lib/validation/auth.test.ts
+     - src/lib/auth/password.ts exports hashPassword, verifyPassword,
+       BCRYPT_COST (10). It imports PASSWORD_MAX_BYTES from
+       @/lib/validation/auth so the limit has one source.
+     - src/lib/auth/password.test.ts
+
+     Both tests run in the default jsdom environment, which is fine for pure
+     functions. Use @/ imports, named exports, no any, no !.
+
+     Error messages (sentence case)
+
+     - name: "Enter your name."
+     - email malformed: "Enter a valid email address."
+     - email wrong domain: "Use your @northeastern.edu email address."
+     - password short: "Use at least 8 characters."
+     - password long: "Use 72 bytes or fewer." (emoji and non-ASCII use more
+       than 1 byte per character)
+
+     Cycle 1: signup validation
+
+     Red tests in src/lib/validation/auth.test.ts, named by AC:
+     - accepts a valid name, email, and password (US-01 AC1)
+     - rejects missing name, email, or password with errors on the right field
+       keys via z.flattenError (AC1)
+     - rejects an empty or whitespace-only name, and trims a padded name (AC1)
+     - accepts @northeastern.edu; trims and lowercases  Alice@Northeastern.EDU
+       to alice@northeastern.edu (AC2)
+     - rejects @gmail.com with "Use your @northeastern.edu email address." (AC2)
+     - rejects a@mail.northeastern.edu, a@northeastern.edu.evil.com,
+       a@notnortheastern.edu, a@northeastern.com (AC2)
+     - rejects malformed emails foo, foo@, @northeastern.edu (AC2)
+     - rejects a 7-character password and accepts exactly 8 (AC3)
+     - accepts exactly 72 bytes and rejects 73 ASCII bytes (AC3)
+     - rejects a password under 72 characters but over 72 bytes, such as 25 x
+       "€" (3 bytes each) (AC3)
+     - preserves password whitespace: "  pass word  " stays unchanged and is not
+       trimmed (AC3)
+
+     Steps:
+     1. Write the tests and run npx vitest run src/lib/validation/auth.test.ts.
+        They must fail because @/lib/validation/auth doesn't exist.
+     2. git add src/lib/validation/auth.test.ts, then commit test(auth): add 
+        failing tests for signup validation (#4).
+
+     Green: write the minimum in auth.ts:
+     - name: z.string().trim().min(1, ...)
+     - email: z.string().trim().toLowerCase().pipe(z.email(...)), then a refine
+       with endsWith("@northeastern.edu") on the normalized value. A subdomain
+       ends in .northeastern.edu, so it fails.
+     - password: z.string().min(8, ...) plus a refine using new 
+       TextEncoder().encode(v).length <= 72
+     - Run the test file until it passes, then commit feat(auth): add signup 
+       validation schema (#4).
+
+     Refactor (only if useful): extract the byte-length helper and constants,
+     and tidy messages. Tests stay green. Commit refactor(auth): tidy signup 
+     schema constants (#4). Skip if there is nothing to clean up.
+
+     Cycle 2: password hashing
+
+     Red tests in src/lib/auth/password.test.ts:
+     - hashPassword returns a string different from the input (US-01 AC3)
+     - the hash matches /^\$2[aby]\$10\$/ (bcrypt, cost 10) (AC3)
+     - hashing the same password twice gives different hashes (salted) (AC3)
+     - verifyPassword is true for the right password and false for a wrong one
+       (AC3)
+     - verifyPassword is case-sensitive and not whitespace-trimmed (AC3)
+     - hashPassword rejects a password over 72 bytes (a multibyte one under 72
+       characters) with a RangeError (AC3)
+     - verifyPassword returns false, not throwing, for an over-72-byte password
+       (AC3)
+     - verifyPassword returns false for a malformed hash such as "not-a-hash"
+       (AC3)
+
+     Steps:
+     1. Run npx vitest run src/lib/auth/password.test.ts. It must fail on the
+        missing module.
+     2. git add src/lib/auth/password.test.ts, then commit test(auth): add 
+        failing tests for password hashing (#4).
+
+     Green: write password.ts:
+     - hashPassword: check the byte length first and throw RangeError over 72,
+       then bcrypt.hash(password, BCRYPT_COST)
+     - verifyPassword: return false over 72 bytes, otherwise bcrypt.compare
+       wrapped so any error returns false
+     - Run the file until it passes, then commit feat(auth): add bcrypt password
+       helpers (#4).
+
+     Refactor (optional): share the byte-length helper between both modules if
+     it is duplicated. The helper would live in validation/auth.ts or the
+     helpers stay private. Commit refactor(auth): share password byte-length 
+     check (#4).
+
+     Git hygiene
+
+     - Stage explicit paths only. The untracked docs/hw4/setup-session.txt is
+       not part of these commits.
+     - Every commit message ends with the trailer Co-Authored-By: Claude Sonnet 
+       5.5 <noreply@anthropic.com>.
+     - Never combine tests and implementation in one commit. Never weaken a test
+       to pass it.
+     - Don't run tsc during Red, since tests import modules that don't exist
+       yet.
+
+     Verification
+
+     Per cycle: npx vitest run src/lib/validation/auth.test.ts, then npx vitest 
+     run src/lib/auth/password.test.ts.
+
+     Final, as one command:
+     npm test && npx tsc --noEmit && npm run lint
+
+     E2E is not required, because this slice has no UI or route. Then git log 
+     --oneline to confirm the Red commits come before their Green commits. The
+     report will list each AC against its test and note what is stubbed or out
+     of scope.
+
+     Security considerations
+
+     - Plain passwords are never logged, returned, or included in error
+       messages. Zod issues carry only static messages, not the input value.
+     - Passwords are not trimmed or normalized, so what the user types is what
+       gets hashed.
+     - The 72-byte cap is enforced in both the schema and the helpers, so a long
+       password can't be silently truncated by bcrypt.
+     - The domain is matched exactly after normalization, so look-alike domains
+       and subdomains can't pass.
+     - bcrypt cost 10 meets the AGENTS.md minimum. The cost is a constant, so
+       raising it later is a one-line change.
+     - verifyPassword fails closed and never throws on bad input.
+     - The cost-10 hash takes about 60 ms per call in tests, which is
+       acceptable.
+
+     Revisions after review (these override the sections above)
+
+     1. One stage at a time. Run a single TDD stage, then stop and wait for
+        approval. The order is: C1 Red, C1 Green, C1 Refactor (only if natural),
+        C2 Red, C2 Green, C2 Refactor.
+     2. Meaningful refactor, not manufactured. The planned one is in Cycle 2.
+        Green for password.ts will need the same UTF-8 byte-length check that
+        the schema already has. Green duplicates it minimally, then the Refactor
+        commit extracts one exported utf8ByteLength() helper used by both
+        modules, with tests unchanged and green. Commit refactor(auth): share 
+        utf8 byte-length check between schema and hashing (#4). If Cycle 1 Green
+        has nothing worth cleaning, skip its refactor.
+     3. Red shows behavioral failures, not a missing module. Red commits include
+        a minimal non-functional stub so the tests import and fail on
+        assertions:
+        - src/lib/validation/auth.ts stub exports the constants and signupSchema
+          = z.object({ name: z.string(), email: z.string(), password: 
+          z.string() }) and type SignupInput. It has no trimming, domain,
+          length, or byte rules, so it accepts nearly everything.
+        - The password.ts stub, in Cycle 2, would have hashPassword return the
+          input unchanged and verifyPassword return false.
+        - No real behavior is implemented before Red is committed. I'll run the
+          tests, confirm they fail on assertions, and check that the failures
+          are for the right reasons (some "accepts valid input" tests may pass
+          against the stub, which is expected).
+        - Red commit contains the test file and the stub, with explicit git add
+          paths. Message: test(auth): add failing tests for signup validation 
+          (#4), with the Co-Authored-By trailer.
+     4. UTF-16 length kept and documented. Zod .min(8) counts UTF-16 code units,
+        so an emoji counts as 2. This is documented in a comment in
+        validation/auth.ts and in the Green commit body. A test pins the current
+        behavior so a future change is deliberate. The 72-byte cap bounds the
+        other end.
+     5. Issue #4 stays open. This slice doesn't satisfy AC4 or AC5 or the UI and
+        E2E definition of done. Commit messages use (#4) only, never Closes or
+        Fixes. A future PR for this slice should say "Part of #4".
+
+     Immediate next action after approval
+
+     Cycle 1 Red only: write auth.test.ts and the stub, run npx vitest run 
+     src/lib/validation/auth.test.ts, show the failures, commit the Red stage,
+     then stop without starting Green.
+
+⏺ Write(src/lib/validation/auth.ts)
+  ⎿  Wrote 14 lines to src/lib/validation/auth.ts
+       1 import { z } from "zod";
+       2 
+       3 export const ALLOWED_EMAIL_DOMAIN = "@northeastern.edu";
+       4 export const PASSWORD_MIN_LENGTH = 8;
+       5 export const PASSWORD_MAX_BYTES = 72;
+       6 
+       7 // Red-stage stub (#4): accepts any strings and enforces no rule
+         s yet.
+       8 export const signupSchema = z.object({
+       9   name: z.string(),
+     … +5 lines (ctrl+o to expand)
+
+⏺ Write(src/lib/validation/auth.test.ts)
+  ⎿  Wrote 122 lines to src/lib/validation/auth.test.ts
+      1 import { describe, expect, it } from "vitest";
+      2 import { z } from "zod";
+      3 import { signupSchema } from "@/lib/validation/auth";
+      4 
+      5 const valid = {
+      6   name: "Alice Husky",
+      7   email: "alice@northeastern.edu",
+      8   password: "correct horse",
+      9 };
+     … +113 lines (ctrl+o to expand)
+
+⏺ Bash(npx vitest run src/lib/validation/auth.test.ts 2>&1 | tail -80)
+  ⎿       55|
+          56|     it("rejects a non-university address with a clear message
+      (US-01 A…
+     … +76 lines (ctrl+o to expand)
+
+⏺ Bash(git add src/lib/validation/auth.ts src/lib/validation/auth.test.ts && git
+      commit -q -m "test(auth): add failing tests for signup validation (#4)…)
+  ⎿  63655f2 test(auth): add failing tests for signup validation (#4)
+     12cadd6 chore(claude): configure project permission rules
+     ?? docs/hw4/setup-session.txt
+
+⏺ Cycle 1 Red is committed as 63655f2, test(auth): add failing tests for signup 
+  validation (#4). I stopped before Green.
+
+  What's in the commit
+  - src/lib/validation/auth.test.ts has 21 tests named by acceptance criterion
+    (AC1–AC3).
+  - src/lib/validation/auth.ts is a non-functional stub. It exports the
+    constants, a signupSchema that accepts any three strings, and SignupInput.
+    It has no trimming, domain, length, or byte rules.
+  - Only those two files were staged. docs/hw4/setup-session.txt is still
+    untracked.
+
+  Red result: 14 failed and 7 passed. The failures are assertion failures, not a
+  missing module. They cover:
+  - the empty-name error and the domain rejection, including the four look-alike
+    domains
+  - the three malformed emails
+  - the 7-character minimum
+  - the 73-byte maximum and the 25 × "€" multibyte case
+
+  The 7 that pass are expected against a permissive stub:
+  - valid input is accepted
+  - a missing field is rejected
+  - a @northeastern.edu address is accepted
+  - 8 characters and exactly 72 bytes are accepted
+  - the password is left untrimmed
+  - the UTF-16 emoji case, which pins the limitation you asked me to keep
+
+  Two of these will matter in Green:
+  - Trimming is covered only by the name test. The email trim-and-lowercase test
+    is among the 14 failing.
+  - The failing tests report "undefined" as the received error array, because
+    the stub never produces field errors. The failure points at the right place,
+    but the output isn't very readable.
+
+  I didn't run tsc or lint at this stage. Issue #4 stays open and the commit
+  says "Part of #4".
+
+  Ready for Cycle 1 Green when you approve.
+
+✻ Sautéed for 32s · done 5:19 PM
+
+※ recap: We're building the signup validation and password hashing slice of Issue #4, and Cycle 1 Red is committed (63655f2) with 14 tests failing on assertions. Next action: your approval to start Cycle 1 Green, implementing the schema in auth.ts. (turn off recaps in /config)
+
+❯ Approved. Proceed with Cycle 1 Green only.                                    
+                                                                                
+  Implement the minimum production code in src/lib/validation/auth.ts required  
+  to pass all 21 existing tests.                                                
+                                                                                
+  - Follow the approved plan and AGENTS.md.                                     
+  - Do not modify, weaken, skip, or delete any existing tests.                  
+  - Do not implement password hashing or start Cycle 2.                         
+  - Run npx vitest run src/lib/validation/auth.test.ts and show the full test   
+  summary.                                                                      
+  - If all tests pass, commit only the implementation file with the message:    
+  feat(auth): add signup validation schema (#4).                                
+  - Show the commit hash and git status.                                        
+                                                                                
+  Stop after the Green commit and wait for my approval.                         
+
+⏺ Write(src/lib/validation/auth.ts)
+  ⎿  Added 20 lines, removed 4 lines
+       4  export const PASSWORD_MIN_LENGTH = 8;
+       5  export const PASSWORD_MAX_BYTES = 72;
+       6 
+       7 -// Red-stage stub (#4): accepts any strings and enforces no rul
+         -es yet.                                                        
+       7  export const signupSchema = z.object({
+       9 -  name: z.string(),                                            
+      10 -  email: z.string(),                                           
+      11 -  password: z.string(),                                        
+       8 +  name: z.string().trim().min(1, "Enter your name."),          
+       9 +  // The domain check runs on the normalized (trimmed, lowercas
+         +ed) value. A                                                   
+      10 +  // suffix match on "@northeastern.edu" rejects subdomains and
+         + look-alikes.                                                  
+      11 +  email: z                                                     
+      12 +    .string()                                                  
+      13 +    .trim()                                                    
+      14 +    .toLowerCase()                                             
+      15 +    .pipe(z.email("Enter a valid email address."))             
+      16 +    .refine((email) => email.endsWith(ALLOWED_EMAIL_DOMAIN), { 
+      17 +      message: `Use your ${ALLOWED_EMAIL_DOMAIN} email address.
+         +`,                                                             
+      18 +    }),                                                        
+      19 +  // Passwords are never trimmed or normalized.                
+      20 +  // Known limitation: .min() counts UTF-16 code units, so one 
+         +emoji counts as 2                                              
+      21 +  // characters. The 72-byte cap below is what prevents bcrypt 
+         +truncation.                                                    
+      22 +  password: z                                                  
+      23 +    .string()                                                  
+      24 +    .min(PASSWORD_MIN_LENGTH, `Use at least ${PASSWORD_MIN_LENG
+         +TH} characters.`)                                              
+      25 +    .refine((password) => new TextEncoder().encode(password).le
+         +ngth <= PASSWORD_MAX_BYTES, {                                  
+      26 +      message: `Use ${PASSWORD_MAX_BYTES} bytes or fewer.`,    
+      27 +    }),                                                        
+      28  });
+      29 
+      30  export type SignupInput = z.infer<typeof signupSchema>;
+
+⏺ Bash(npx vitest run src/lib/validation/auth.test.ts 2>&1 | tail -50)  ⎿   RUN  v5.0.5 /Users/sijiachen/buddyup
+
+      ❯ src/lib/validation/auth.test.ts (21 tests | 1 failed) 7ms
+     … +30 lines (ctrl+o to expand)
+
+⏺ Bash(node -e '
+      const {z}=require("zod");…)
+  ⎿  utf16 length 8 codepoints 4 min(8) ok: false
+     4 emoji + 4 ascii: true
+
+⏺ Update(src/lib/validation/auth.ts)
+  ⎿  Added 2 lines, removed 2 lines
+      17        message: `Use your ${ALLOWED_EMAIL_DOMAIN} email address.
+          `,
+      18      }),
+      19    // Passwords are never trimmed or normalized.
+      20 -  // Known limitation: .min() counts UTF-16 code units, so one 
+         -emoji counts as 2                                              
+      21 -  // characters. The 72-byte cap below is what prevents bcrypt 
+         -truncation.                                                    
+      20 +  // .min() counts Unicode code points (Zod 4.6.7), so one emoj
+         +i counts as 1                                                  
+      21 +  // character. The 72-byte cap below is what prevents bcrypt t
+         +runcation.                                                     
+      22    password: z
+      23      .string()
+      24      .min(PASSWORD_MIN_LENGTH, `Use at least ${PASSWORD_MIN_LENG
+          TH} characters.`)
+
+⏺ Bash(git status --short && git log --oneline -1)
+  ⎿   M src/lib/validation/auth.ts
+     ?? docs/hw4/feature-plan.md
+     ?? docs/hw4/setup-session.txt
+     63655f2 test(auth): add failing tests for signup validation (#4)
+
+⏺ I haven't committed Green. 20 of the 21 tests pass, and the one failure is a
+  test whose premise is wrong. I didn't touch the test.
+
+  Test Files  1 failed (1)
+       Tests  1 failed | 20 passed (21)
+
+  The failing test is counts length in UTF-16 code units, so 4 emoji satisfy the
+  minimum (US-01 AC3). It expects "😀".repeat(4) to pass .min(8), but the
+  schema rejects it.
+
+  I checked Zod 4.6.7 directly. That string has .length 8 (UTF-16) and 4 code
+  points, and z.string().min(8) rejects it. So Zod 4 counts code points, not
+  UTF-16 units. Decision 4 and the test both assumed UTF-16. Code-point counting
+  is also the more natural reading of "at least 8 characters".
+
+  The 72-byte cap still protects against bcrypt truncation either way.
+
+  Working tree
+  - src/lib/validation/auth.ts is modified and uncommitted. Its comment now says
+    Zod counts code points, since my first draft repeated the wrong claim.
+  - Latest commit is still 63655f2, the Red commit.
+  - docs/hw4/feature-plan.md is a new untracked file. I didn't create it, so it
+    appeared since the last status check.
+  - docs/hw4/setup-session.txt is still untracked.
+
+  Options
+  1. Keep Zod's code-point counting (recommended). I'd correct the one test,
+     renaming it and flipping the assertion so it pins code-point behavior. For
+     example, 4 emoji are rejected and 8 emoji are accepted. This is a test
+     change, so I'm asking first. The correction would go in a separate commit
+     before Green, so the history shows why it changed.
+  2. Keep the UTF-16 decision literally. I'd replace .min(8) with a refine on
+     password.length >= 8. The tests stay as written, but the code is more
+     custom than the minimum.
+
+  Tell me which you want. I'll then make that change, rerun the file, and commit
+  Green only if all 21 pass.
+
+✻ Sautéed for 24s · done 5:27 PM
+
+❯ Choose option 1. Keep Zod's native Unicode code-point counting.               
+                                                                                
+  Correct only the invalid UTF-16 test assumption. Verify that four emoji are   
+  rejected and eight emoji are accepted. Explain why this is a correction of an 
+  incorrect test assumption, not a weakening of the acceptance criteria.        
+                                                                                
+  Commit the test correction separately before committing the implementation.   
+  Then rerun the validation test suite and commit Green only if all tests pass. 
+                                                                                
+  Do not modify other tests or start Cycle 2. Show the test results, commit     
+  hashes, and git status, then stop.                                            
+
+⏺ Update(src/lib/validation/auth.test.ts)
+  ⎿  Added 7 lines, removed 4 lines
+      113        expect(result.password).toBe("  pass word  ");
+      114      });
+      115 
+      116 -    it("counts length in UTF-16 code units, so 4 emoji satisfy
+          - the minimum (US-01 AC3)", () => {                            
+      117 -      // Known limitation: each emoji is 2 UTF-16 units, so 4 
+          -emoji = 8 units.                                              
+      118 -      // Pinned so a switch to code-point counting is a delibe
+          -rate change.                                                  
+      119 -      expect(signupSchema.safeParse({ ...valid, password: "😀"
+          -.repeat(4) }).success).toBe(true);                            
+      116 +    it("counts length in Unicode code points, so 4 emoji are t
+          +oo short and 8 are enough (US-01 AC3)", () => {               
+      117 +      // Zod 4 counts code points: one emoji is 1 character (2
+          + UTF-16 units, 4 bytes).                                      
+      118 +      // Pinned so a change to the counting rule is a delibera
+          +te decision.                                                  
+      119 +      expect(fieldErrors({ ...valid, password: "😀".repeat(4) 
+          +})?.password).toContain(                                      
+      120 +        "Use at least 8 characters.",                         
+      121 +      );                                                      
+      122 +      expect(signupSchema.safeParse({ ...valid, password: "😀"
+          +.repeat(8) }).success).toBe(true);                            
+      123      });
+      124    });
+      125  });
+
+⏺ Bash(git add src/lib/validation/auth.test.ts && git commit -q -m "test(auth):
+      correct password length test to code-point counting (#4)…)
+  ⎿  ab56440 test(auth): correct password length test to code-point countin
+     g (#4)
+     … +8 lines (ctrl+o to expand)
+
+⏺ Bash(git add src/lib/validation/auth.ts && git commit -q -m "feat(auth): add
+      signup validation schema (#4)…)
+  ⎿  bb92b72 feat(auth): add signup validation schema (#4)
+     ab56440 test(auth): correct password length test to code-point countin
+     g (#4)
+     … +4 lines (ctrl+o to expand)
+
+⏺ Cycle 1 Green is committed. All 21 tests pass, and I stopped before Cycle 2.
+
+   RUN  v5.0.5
+   Test Files  1 passed (1)
+        Tests  21 passed (21)
+
+  Commits
+
+  ┌─────────┬────────────────────────────────────────────────────────────────┐
+  │  Hash   │                            Message                             │
+  ├─────────┼────────────────────────────────────────────────────────────────┤
+  │ 63655f2 │ test(auth): add failing tests for signup validation (#4) (Red) │
+  ├─────────┼────────────────────────────────────────────────────────────────┤
+  │ ab56440 │ test(auth): correct password length test to code-point         │
+  │         │ counting (#4)                                                  │
+  ├─────────┼────────────────────────────────────────────────────────────────┤
+  │ bb92b72 │ feat(auth): add signup validation schema (#4) (Green)          │
+  └─────────┴────────────────────────────────────────────────────────────────┘
+
+  Git status: the tree is clean apart from two untracked files,
+  docs/hw4/feature-plan.md and docs/hw4/setup-session.txt. I committed neither.
+
+  Why this was a test correction, not a weakening
+  - The acceptance criterion is "password must be at least 8 characters". It
+    didn't change, and neither did the rule: the minimum is still 8.
+  - My earlier test claimed Zod counts UTF-16 code units. I checked Zod 4.6.7,
+    and it counts Unicode code points. The test encoded a false belief about the
+    library, not the requirement.
+  - The corrected test is stricter than before. It asserts both sides of the
+    boundary: 4 emoji are rejected with "Use at least 8 characters." and 8 emoji
+    are accepted. The old test asserted only that something short was accepted.
+  - The 72-byte cap is unchanged and still blocks bcrypt truncation. The 25 ×
+    "€" test still covers it.
+  - The test change is its own commit before Green, so the history shows what
+    changed and why.
+
+  I only checked the corrected test against the finished implementation. I
+  didn't run it against the stub, so I can't show it failing in Red. Against
+  that stub, the "4 emoji rejected" assertion should fail.
+
+  Ready for Cycle 1 Refactor, or for Cycle 2 Red, when you approve. I don't see
+  a natural Cycle 1 refactor, since the file is small. The planned meaningful
+  refactor is the shared utf8ByteLength helper in Cycle 2.
+
+✻ Baked for 17s · done 5:29 PM
+
+❯ Approved. Skip Cycle 1 Refactor because there is no meaningful improvement    
+  needed.                                                                       
+                                                                                
+  Proceed with Cycle 2 Red only, following the approved plan.                   
+                                                                                
+  1. Write password hashing and verification tests in                           
+  src/lib/auth/password.test.ts.                                                
+  2. Create a minimal non-functional stub in src/lib/auth/password.ts. The stub 
+  must fail closed and must not return plaintext passwords.                     
+  3. Cover bcrypt cost 10, salted hashes, correct and incorrect passwords,      
+  whitespace and case sensitivity, the 72-byte UTF-8 limit, and malformed       
+  hashes.                                                                       
+  4. Run npx vitest run src/lib/auth/password.test.ts and demonstrate actual    
+  failing behavioral assertions.                                                
+  5. Commit only the test file and minimal stub with the message: test(auth):   
+  add failing tests for password hashing (#4).                                  
+  6. Show the test summary, commit hash, and git status.                        
+                                                                                
+  Do not implement actual bcrypt hashing yet. Do not modify the Cycle 1 files.  
+  Stop after the Red commit and wait for my approval.                           
+
+⏺ Write(src/lib/auth/password.ts)
+  ⎿  Wrote 14 lines to src/lib/auth/password.ts
+       1 export const BCRYPT_COST = 10;
+       2 
+       3 // Red-stage stub (#4): fails closed. It never returns the plain
+         text password
+       4 // and never verifies anything as correct.
+       5 export async function hashPassword(password: string): Promise<st
+         ring> {
+       6   void password;
+       7   return "";
+       8 }
+     … +6 lines (ctrl+o to expand)
+
+⏺ Write(src/lib/auth/password.test.ts)
+  ⎿  Wrote 83 lines to src/lib/auth/password.test.ts
+       1 import { hashSync } from "bcryptjs";
+       2 import { describe, expect, it } from "vitest";
+       3 import { hashPassword, verifyPassword } from "@/lib/auth/passwor
+         d";
+       4 
+       5 const PASSWORD = "correct horse";
+       6 // 25 x "€" is 25 characters but 75 UTF-8 bytes, over bcrypt's 7
+         2-byte limit.
+       7 const TOO_LONG_MULTIBYTE = "€".repeat(25);
+       8 
+     … +75 lines (ctrl+o to expand)
+
+⏺ Bash(npx vitest run src/lib/auth/password.test.ts 2>&1 | grep -E "✓|×|❯|Test
+      Files|Tests|Error|FAIL" | head -60)
+  ⎿   ❯ src/lib/auth/password.test.ts (15 tests | 9 failed) 10ms
+        ❯ hashPassword (6)
+          × returns a hash that is not the plain password (US-01 AC3) 2ms
+     … +42 lines (ctrl+o to expand)
+
+⏺ Bash(npx eslint src/lib/auth && npx vitest run src/lib/auth/password.test.ts
+      2>&1 | grep -E "Test Files|Tests " ; git add src/lib/auth/password.ts
+      src/lib/auth/passw…)
+  ⎿  ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+      Test Files  1 failed (1)
+           Tests  9 failed | 6 passed (15)
+     … +3 lines (ctrl+o to expand)
+
+⏺ Cycle 2 Red is committed as 5e46fab, test(auth): add failing tests for 
+  password hashing (#4). I stopped before Green.
+
+   Test Files  1 failed (1)
+        Tests  9 failed | 6 passed (15)
+
+  Git status: only docs/hw4/feature-plan.md and docs/hw4/setup-session.txt are
+  untracked. I committed neither, and I didn't touch the Cycle 1 files. ESLint
+  on src/lib/auth passed.
+
+  What I committed
+  - src/lib/auth/password.test.ts has 15 tests.
+  - src/lib/auth/password.ts is a fail-closed stub. hashPassword returns an
+    empty string and verifyPassword always returns false. It never returns the
+    plaintext, and BCRYPT_COST is exported as 10.
+
+  The 9 failures are assertion failures:
+  - The hash isn't empty.
+  - The hash matches /^\$2[aby]\$10\$/, for both the normal case and the
+    exactly-72-byte case.
+  - Two hashes of the same password differ.
+  - hashPassword rejects 73 ASCII bytes with a RangeError.
+  - hashPassword rejects 25 × "€" (75 bytes, under 72 characters) with a
+    RangeError.
+  - verifyPassword returns true for the correct password, against a hash built
+    directly with bcryptjs.
+  - verifyPassword returns true when checking a hash from hashPassword.
+  - verifyPassword doesn't trim whitespace, so "  pass word  " matches only
+    itself.
+
+  The 6 that pass are expected against a fail-closed stub:
+  - The hash isn't the plaintext. This one is weak for the stub, since the empty
+    string trivially passes it. The non-empty check in the same test is what
+    fails.
+  - A wrong password returns false.
+  - A wrong-case password returns false.
+  - An over-72-byte password returns false, so the check doesn't match a
+    truncated password.
+  - Three malformed hashes return false without throwing.
+
+  Those six stay useful as regression guards once the real bcrypt code arrives,
+  especially the truncation test.
+
+  The verifyPassword tests use hashes built directly with bcryptjs at cost 4, so
+  verifyPassword is checked independently of hashPassword.
+
+  Ready for Cycle 2 Green when you approve. After that, the planned Refactor
+  extracts utf8ByteLength so the schema and password.ts share one byte-length
+  check.
+
+✻ Crunched for 30s · done 5:31 PM
+
+❯ Approved. Proceed with Cycle 2 Green only.                                    
+                                                                                
+  Implement the minimum production code in src/lib/auth/password.ts to pass all 
+  existing password hashing tests.                                              
+                                                                                
+  - Use bcryptjs with a cost factor of 10.                                      
+  - Enforce the 72-byte UTF-8 password limit.                                   
+  - Never trim or normalize passwords.                                          
+  - Make verification fail closed for invalid hashes and oversized passwords.   
+  - Do not modify, weaken, skip, or delete any tests.                           
+  - Do not modify the signup validation files yet.                              
+  - Run npx vitest run src/lib/auth/password.test.ts and show the test summary. 
+  - If all tests pass, commit only the implementation file with the message:    
+  feat(auth): add bcrypt password helpers (#4).                                 
+  - Show the commit hash and git status.                                        
+                                                                                
+  Stop after the Green commit. Do not start refactoring until I approve.        
+
+⏺ Write(src/lib/auth/password.ts)
+  ⎿  Added 19 lines, removed 8 lines
+       1 +import { compare, hash } from "bcryptjs";                      
+       2 +                                                               
+       3  export const BCRYPT_COST = 10;
+       4 +// bcrypt silently ignores bytes after the 72nd, so longer pass
+         +words are refused.                                             
+       5 +const MAX_PASSWORD_BYTES = 72;                                 
+       6 
+       3 -// Red-stage stub (#4): fails closed. It never returns the plai
+         -ntext password                                                 
+       4 -// and never verifies anything as correct.                     
+       7 +function exceedsMaxBytes(password: string): boolean {          
+       8 +  return new TextEncoder().encode(password).length > MAX_PASSWO
+         +RD_BYTES;                                                      
+       9 +}                                                              
+      10 +                                                               
+      11  export async function hashPassword(password: string): Promise<s
+          tring> {
+       6 -  void password;                                               
+       7 -  return "";                                                   
+      12 +  if (exceedsMaxBytes(password)) {                             
+      13 +    throw new RangeError(`Password must be ${MAX_PASSWORD_BYTES
+         +} bytes or fewer.`);                                           
+      14 +  }                                                            
+      15 +  return hash(password, BCRYPT_COST);                          
+      16  }
+      17 
+      10 -export async function verifyPassword(password: string, hash: st
+         -ring): Promise<boolean> {                                      
+      11 -  void password;                                               
+      12 -  void hash;                                                   
+      13 -  return false;                                                
+      18 +export async function verifyPassword(password: string, password
+         +Hash: string): Promise<boolean> {                              
+      19 +  if (exceedsMaxBytes(password)) return false;                 
+      20 +  try {                                                        
+      21 +    return await compare(password, passwordHash);              
+      22 +  } catch {                                                    
+      23 +    return false;                                              
+      24 +  }                                                            
+      25  }
+
+⏺ Bash(npx vitest run src/lib/auth/password.test.ts 2>&1 | tail -12)
+  ⎿   RUN  v5.0.5 /Users/sijiachen/buddyup
+     … +5 lines (ctrl+o to expand)
+
+⏺ Bash(git add src/lib/auth/password.ts && git commit -q -m "feat(auth): add
+      bcrypt password helpers (#4)…)
+  ⎿  77e0c8d feat(auth): add bcrypt password helpers (#4)
+     ?? docs/hw4/feature-plan.md
+     ?? docs/hw4/setup-session.txt
+
+⏺ Cycle 2 Green is committed as 77e0c8d, feat(auth): add bcrypt password helpers
+  (#4). All 15 password tests pass, and I stopped before the refactor.
+
+   Test Files  1 passed (1)
+        Tests  15 passed (15)
+
+  Git status: only docs/hw4/feature-plan.md and docs/hw4/setup-session.txt are
+  untracked. I committed only src/lib/auth/password.ts. I didn't touch any tests
+  or the signup validation files.
+
+  What the implementation does
+  - hashPassword uses bcryptjs at cost 10 (BCRYPT_COST). It throws a RangeError
+    for passwords over 72 UTF-8 bytes.
+  - verifyPassword fails closed. It returns false for an oversized password, so
+    it can't match a truncated one. It also returns false if compare throws on a
+    malformed hash.
+  - Passwords are never trimmed or normalized.
+
+  Deliberate duplication: password.ts keeps its own private MAX_PASSWORD_BYTES
+  and exceedsMaxBytes. These repeat what signupSchema already does inline. The
+  planned Refactor would extract one shared utf8ByteLength() helper and have
+  both modules use it, so the 72-byte limit has a single source.
+
+  I ran only the password test file at this stage. The full npm test && npx tsc 
+  --noEmit && npm run lint check comes after the refactor.
+
+  Ready for the Refactor commit when you approve.
+
+✻ Cooked for 10s · done 5:32 PM
+
+❯ Approved. Proceed with Cycle 2 Refactor only.                                 
+                                                                                
+  1. Extract the duplicated UTF-8 byte-length logic and the 72-byte password    
+  limit into a small shared password-policy module.                             
+  2. Update both signup validation and password hashing to use the shared       
+  module.                                                                       
+  3. Preserve existing public exports and behavior.                             
+  4. Do not modify, weaken, skip, or delete any existing tests.                 
+  5. Run the full verification command: npm test && npx tsc --noEmit && npm run 
+  lint                                                                          
+  6. Show the complete verification results, including test counts.             
+  7. If all checks pass, commit only the refactored source files with the       
+  message: refactor(auth): share password byte-length policy (#4).              
+  8. Show git log --oneline -12 and git status --short.                         
+                                                                                
+  Do not implement additional features, close Issue #4, or push to GitHub yet.  
+  Stop after the Refactor commit.                                               
+
+⏺ Write(src/lib/auth/password-policy.ts)  ⎿  Wrote 11 lines to src/lib/auth/password-policy.ts
+       1 // bcrypt silently ignores bytes after the 72nd, so longer passw
+         ords are refused
+       2 // everywhere (signup validation and hashing) using this one def
+         inition.
+       3 export const PASSWORD_MAX_BYTES = 72;
+       4 
+       5 export function utf8ByteLength(value: string): number {
+       6   return new TextEncoder().encode(value).length;
+       7 }
+       8 
+     … +3 lines (ctrl+o to expand)
+
+⏺ Update(src/lib/auth/password.ts)
+  ⎿  Added 3 lines, removed 8 lines
+       1  import { compare, hash } from "bcryptjs";
+       2 +import { exceedsPasswordByteLimit, PASSWORD_MAX_BYTES } from "@
+         +/lib/auth/password-policy";                                    
+       3 
+       4  export const BCRYPT_COST = 10;
+       4 -// bcrypt silently ignores bytes after the 72nd, so longer pass
+         -words are refused.                                             
+       5 -const MAX_PASSWORD_BYTES = 72;                                 
+       5 
+       7 -function exceedsMaxBytes(password: string): boolean {          
+       8 -  return new TextEncoder().encode(password).length > MAX_PASSWO
+         -RD_BYTES;                                                      
+       9 -}                                                              
+      10 -                                                               
+       6  export async function hashPassword(password: string): Promise<s
+          tring> {
+      12 -  if (exceedsMaxBytes(password)) {                             
+      13 -    throw new RangeError(`Password must be ${MAX_PASSWORD_BYTES
+         -} bytes or fewer.`);                                           
+       7 +  if (exceedsPasswordByteLimit(password)) {                    
+       8 +    throw new RangeError(`Password must be ${PASSWORD_MAX_BYTES
+         +} bytes or fewer.`);                                           
+       9    }
+      10    return hash(password, BCRYPT_COST);
+      11  }
+
+⏺ Update(src/lib/auth/password.ts)
+  ⎿  Added 1 line, removed 1 line
+      11  }
+      12 
+      13  export async function verifyPassword(password: string, password
+          Hash: string): Promise<boolean> {
+      14 -  if (exceedsMaxBytes(password)) return false;                 
+      14 +  if (exceedsPasswordByteLimit(password)) return false;        
+      15    try {
+      16      return await compare(password, passwordHash);
+      17    } catch {
+
+⏺ Update(src/lib/validation/auth.ts)
+  ⎿  Added 4 lines, removed 1 line
+       1  import { z } from "zod";
+       2 +import { exceedsPasswordByteLimit, PASSWORD_MAX_BYTES } from "@
+         +/lib/auth/password-policy";                                    
+       3 
+       4 +// Re-exported so existing imports of the limit from this modul
+         +e keep working.                                                
+       5 +export { PASSWORD_MAX_BYTES };                                 
+       6 +                                                               
+       7  export const ALLOWED_EMAIL_DOMAIN = "@northeastern.edu";
+       8  export const PASSWORD_MIN_LENGTH = 8;
+       5 -export const PASSWORD_MAX_BYTES = 72;                          
+       9 
+      10  export const signupSchema = z.object({
+      11    name: z.string().trim().min(1, "Enter your name."),
+
+⏺ Update(src/lib/validation/auth.ts)
+  ⎿  Added 1 line, removed 1 line
+      25    password: z
+      26      .string()
+      27      .min(PASSWORD_MIN_LENGTH, `Use at least ${PASSWORD_MIN_LENG
+          TH} characters.`)
+      28 -    .refine((password) => new TextEncoder().encode(password).le
+         -ngth <= PASSWORD_MAX_BYTES, {                                  
+      28 +    .refine((password) => !exceedsPasswordByteLimit(password), 
+         +{                                                              
+      29        message: `Use ${PASSWORD_MAX_BYTES} bytes or fewer.`,
+      30      }),
+      31  });
+
+⏺ Bash(npm test && npx tsc --noEmit && npm run lint; echo "exit: $?")
+  ⎿  > buddyup@0.1.0 test
+     > vitest run --passWithNoTests
+     … +13 lines (ctrl+o to expand)
+
+⏺ Bash(npx next typegen 2>&1 | tail -5; git status --short; npm test && npx tsc
+      --noEmit && npm run lint; echo "exit: $?")
+  ⎿  Generating route types...
+     ✓ Types generated successfully
+      M src/lib/auth/password.ts
+     … +23 lines (ctrl+o to expand)
+
+⏺ Bash(git add src/lib/auth/password-policy.ts src/lib/auth/password.ts
+      src/lib/validation/auth.ts && git commit -q -m "refactor(auth): share
+      password byte-length poli…)
+  ⎿  f5c1daf refactor(auth): share password byte-length policy (#4)
+     77e0c8d feat(auth): add bcrypt password helpers (#4)
+     5e46fab test(auth): add failing tests for password hashing (#4)
+     … +13 lines (ctrl+o to expand)
+
+⏺ The refactor is committed as f5c1daf, refactor(auth): share password 
+  byte-length policy (#4). The full verification passes, and I stopped there. I
+  didn't push or close Issue #4.
+
+  Verification: npm test && npx tsc --noEmit && npm run lint exited 0.
+   Test Files  2 passed (2)
+        Tests  36 passed (36)     (21 signup validation + 15 password hashing)
+
+  The first tsc run failed on src/app/layout.tsx(20,50): Cannot find name 
+  'LayoutProps'. That file isn't part of this slice. The generated Next route
+  types were missing, so I ran npx next typegen, as CLAUDE.md prescribes for
+  this case. After that, tsc and ESLint were clean. typegen created no tracked
+  files.
+
+  What changed
+  - New src/lib/auth/password-policy.ts: it exports PASSWORD_MAX_BYTES (72),
+    utf8ByteLength(), and exceedsPasswordByteLimit().
+  - password.ts: it now uses the shared check and no longer has its own private
+    copy.
+  - validation/auth.ts: the schema now calls exceedsPasswordByteLimit. It
+    re-exports PASSWORD_MAX_BYTES, so every existing public export is preserved.
+  - Tests: I didn't touch any.
+
+  Git: the tree is clean apart from the two untracked docs,
+  docs/hw4/feature-plan.md and docs/hw4/setup-session.txt.
+
+  The history now shows the HW4 pattern for this slice:
+  - Cycle 1: Red 63655f2, a test correction ab56440, Green bb92b72.
+  - Cycle 2: Red 5e46fab, Green 77e0c8d, Refactor f5c1daf.
+
+  Remaining for Issue #4:
+  - Duplicate-email handling (AC4).
+  - Auth.js session and the post-sign-up redirect (AC5).
+  - The sign-up form UI.
+  - The POST /api/v1/auth/signup route handler.
+  - E2E tests.
+
+  Waiting for your next instruction.
+
+✻ Cogitated for 25s · done 5:34 PM
